@@ -1,0 +1,18 @@
+{ 
+  "appName": "Quản lý Công việc & Chi tiêu", 
+  "taskTitle": "Tiêu đề Công việc", 
+  "createTask": "Tạo Công việc", 
+  "loginFailed": "Đăng nhập thất bại",
+  "registerFailed": "Đăng kí thất bại",
+  "error": "Lỗi",
+  "login": Đăng nhập,
+  "register": Đăng kí,
+  "email": "Email",
+  "invalidEmail": "Email không hợp lệ",
+  "password": "Mật khẩu",
+  "invalidPassword": "Mật khẩu không hợp lệ",
+  "goToRegister": "Đi tới trang đăng kí",
+  "goToLogin": "Đi tới trang đăng nhập",
+  "success": "Thành công",
+  "expenseCreated": "Tạo chi phí thành công"
+}

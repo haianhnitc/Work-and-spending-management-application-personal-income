@@ -1,0 +1,422 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:share_plus/share_plus.dart';
+import '../../data/models/task_model.dart';
+import '../controllers/task_controller.dart';
+import '../../../expense/presentation/controllers/expense_controller.dart';
+import '../../../../core/constants/app_enums.dart';
+import '../../../../routes/app_routes.dart';
+
+class TaskDetailScreen extends StatelessWidget {
+  final TaskModel task;
+
+  TaskDetailScreen({required this.task});
+
+  bool get isTablet => MediaQuery.of(Get.context!).size.width > 600;
+
+  @override
+  Widget build(BuildContext context) {
+    final TaskController controller = Get.find<TaskController>();
+    final isTablet = MediaQuery.of(context).size.width > 600;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Chi tiết công việc',
+            style: Theme.of(context).appBarTheme.titleTextStyle),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.share_rounded,
+                color: Theme.of(context).appBarTheme.iconTheme?.color,
+                size: isTablet ? 30 : 26),
+            onPressed: () => _shareTask(context, task),
+            tooltip: 'Chia sẻ công việc',
+          ).animate().scale(duration: 200.ms, delay: 100.ms),
+          IconButton(
+            icon: Icon(Icons.edit_rounded,
+                color: Theme.of(context).appBarTheme.iconTheme?.color,
+                size: isTablet ? 30 : 26),
+            onPressed: () {
+              Get.toNamed(AppRoutes.createTask, arguments: {'task': task});
+            },
+            tooltip: 'Chỉnh sửa công việc',
+          ).animate().scale(duration: 200.ms, delay: 200.ms),
+          IconButton(
+            icon: Icon(Icons.delete_rounded,
+                color: Theme.of(context).appBarTheme.iconTheme?.color,
+                size: isTablet ? 30 : 26),
+            onPressed: () => _confirmDelete(context, controller, task),
+            tooltip: 'Xóa công việc',
+          ).animate().scale(duration: 200.ms, delay: 300.ms),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(isTablet ? 32 : 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Section for Task Title and Completion Status
+            _buildTitleAndStatus(
+                    context, task.title, task.isCompleted, isTablet)
+                .animate()
+                .fadeIn(duration: 300.ms, delay: 100.ms),
+            SizedBox(height: isTablet ? 24 : 20),
+
+            // Description
+            _buildInfoCard(
+              context,
+              icon: Icons.description_rounded,
+              label: 'Mô tả',
+              value: task.description.isNotEmpty
+                  ? task.description
+                  : 'Không có mô tả',
+              isTablet: isTablet,
+            ).animate().fadeIn(duration: 300.ms, delay: 200.ms),
+            SizedBox(height: isTablet ? 16 : 12),
+
+            // Category
+            _buildInfoCard(
+              context,
+              icon: Icons.category_rounded,
+              label: 'Danh mục',
+              value: _categoryToString(task.category),
+              color: _getCategoryColorByName(task.category),
+              isTablet: isTablet,
+            ).animate().fadeIn(duration: 300.ms, delay: 300.ms),
+            SizedBox(height: isTablet ? 16 : 12),
+
+            // Due Date
+            _buildInfoCard(
+              context,
+              icon: Icons.calendar_today_rounded,
+              label: 'Ngày hạn chót',
+              value: DateFormat('dd/MM/yyyy').format(task.dueDate),
+              color: task.dueDate.isBefore(DateTime.now()) && !task.isCompleted
+                  ? Colors.redAccent
+                  : null,
+              isTablet: isTablet,
+            ).animate().fadeIn(duration: 300.ms, delay: 400.ms),
+            SizedBox(height: isTablet ? 16 : 12),
+
+            // Estimated Cost
+            _buildInfoCard(
+              context,
+              icon: Icons.attach_money_rounded,
+              label: 'Chi phí ước tính',
+              value: task.estimatedCost != null && task.estimatedCost! > 0
+                  ? NumberFormat.currency(locale: 'vi', symbol: '₫')
+                      .format(task.estimatedCost)
+                  : 'Không có',
+              isTablet: isTablet,
+            ).animate().fadeIn(duration: 300.ms, delay: 500.ms),
+            SizedBox(height: isTablet ? 24 : 20),
+
+            // Completion Toggle
+            _buildStatusToggle(context, controller, task, isTablet)
+                .animate()
+                .fadeIn(duration: 300.ms, delay: 600.ms),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTitleAndStatus(
+      BuildContext context, String title, bool isCompleted, bool isTablet) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontSize: isTablet ? 34 : 28,
+                color: Theme.of(context).colorScheme.onSurface,
+                decoration: isCompleted ? TextDecoration.lineThrough : null,
+                decorationColor:
+                    Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                decorationThickness: 2,
+              ),
+        ),
+        SizedBox(height: isTablet ? 10 : 6),
+        Container(
+          padding: EdgeInsets.symmetric(
+              horizontal: isTablet ? 14 : 10, vertical: isTablet ? 7 : 5),
+          decoration: BoxDecoration(
+            color: isCompleted
+                ? Colors.green.withOpacity(0.2)
+                : (task.dueDate.isBefore(DateTime.now()) && !task.isCompleted
+                    ? Colors.red.withOpacity(0.2)
+                    : Colors.orange.withOpacity(0.2)),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            isCompleted
+                ? 'Đã hoàn thành ✅'
+                : (task.dueDate.isBefore(DateTime.now())
+                    ? 'Quá hạn ⚠️'
+                    : 'Đang chờ ⏳'),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: isCompleted
+                      ? Colors.green.shade700
+                      : (task.dueDate.isBefore(DateTime.now()) &&
+                              !task.isCompleted
+                          ? Colors.red.shade700
+                          : Colors.orange.shade700),
+                  fontWeight: FontWeight.bold,
+                  fontSize: isTablet ? 15 : 13,
+                ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoCard(BuildContext context,
+      {required IconData icon,
+      required String label,
+      required String value,
+      Color? color,
+      required bool isTablet}) {
+    return Card(
+      elevation: 6, // Slightly more elevation for depth
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18)), // More rounded
+      color: Theme.of(context).cardTheme.color,
+      child: Padding(
+        padding: EdgeInsets.all(isTablet ? 24 : 18),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon,
+                color: color ?? Theme.of(context).colorScheme.primary,
+                size: isTablet ? 32 : 28),
+            SizedBox(width: isTablet ? 20 : 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withOpacity(0.6), // Softer label color
+                          fontWeight: FontWeight.w500,
+                          fontSize: isTablet ? 17 : 15,
+                        ),
+                  ),
+                  SizedBox(height: isTablet ? 6 : 4),
+                  Text(
+                    value,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontSize: isTablet ? 20 : 17,
+                          fontWeight: FontWeight.w600,
+                          color: color ??
+                              Theme.of(context).textTheme.bodyLarge?.color,
+                        ),
+                    overflow: TextOverflow.ellipsis, // Handle long text
+                    maxLines: label == 'Mô tả'
+                        ? 5
+                        : 2, // Allow more lines for description
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusToggle(BuildContext context, TaskController controller,
+      TaskModel task, bool isTablet) {
+    return Card(
+      elevation: 6,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      color: Theme.of(context).cardTheme.color,
+      child: Padding(
+        padding: EdgeInsets.all(isTablet ? 24 : 18),
+        child: Obx(() {
+          final currentTask =
+              controller.tasks.firstWhereOrNull((t) => t.id == task.id) ?? task;
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Đánh dấu hoàn thành',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontSize: isTablet ? 19 : 17,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+              ),
+              Switch.adaptive(
+                // Use adaptive switch for platform consistency
+                value: currentTask.isCompleted,
+                onChanged: (newValue) {
+                  final updatedTask = task.copyWith(isCompleted: newValue);
+                  controller.updateTask(updatedTask);
+                  Get.snackbar(
+                    newValue ? '🎉 Hoàn thành!' : '🔄 Đang chờ',
+                    newValue
+                        ? 'Công việc "${task.title}" đã được hoàn thành.'
+                        : 'Công việc "${task.title}" đang chờ xử lý.',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: newValue
+                        ? Colors.green.shade600
+                        : Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(0.9),
+                    colorText: Colors.white,
+                    icon: Icon(
+                        newValue
+                            ? Icons.check_circle_outline
+                            : Icons.pending_actions,
+                        color: Colors.white),
+                    margin: EdgeInsets.all(10),
+                    borderRadius: 10,
+                  );
+                },
+                activeColor: Theme.of(context).colorScheme.primary,
+                inactiveThumbColor: Colors.grey.shade400,
+                inactiveTrackColor: Colors.grey.shade300,
+              ).animate().flip(
+                  duration: 500.ms,
+                  delay: 100.ms), // Add a subtle flip animation
+            ],
+          );
+        }),
+      ),
+    );
+  }
+
+  void _shareTask(BuildContext context, TaskModel task) {
+    final String shareText = "📝 Công việc: ${task.title}\n"
+        "📖 Mô tả: ${task.description.isNotEmpty ? task.description : 'Không có mô tả'}\n"
+        "🏷️ Danh mục: ${_categoryToString(task.category)}\n"
+        "📅 Hạn chót: ${DateFormat('dd/MM/yyyy').format(task.dueDate)}\n"
+        "💰 Chi phí ước tính: ${task.estimatedCost != null && task.estimatedCost! > 0 ? NumberFormat.currency(locale: 'vi', symbol: '₫').format(task.estimatedCost) : 'Không có'}\n"
+        "✅ Trạng thái: ${task.isCompleted ? 'Đã hoàn thành' : 'Đang chờ'}\n\n"
+        "Quản lý công việc hiệu quả hơn với ứng dụng của bạn!";
+    Share.share(shareText, subject: 'Chi tiết công việc: ${task.title}');
+  }
+
+  void _confirmDelete(
+      BuildContext context, TaskController controller, TaskModel task) {
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20)), // Rounded dialog
+        title: Text('Xác nhận xóa',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .error, // Red title for delete
+                  fontWeight: FontWeight.bold,
+                )),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.warning_amber_rounded,
+                color: Theme.of(context).colorScheme.error,
+                size: isTablet ? 50 : 40),
+            SizedBox(height: isTablet ? 16 : 12),
+            Text(
+                'Bạn có chắc muốn xóa công việc "${task.title}" không?\nThao tác này không thể hoàn tác.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontSize: isTablet ? 17 : 15,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(0.8),
+                    )),
+          ],
+        ),
+        actionsPadding: EdgeInsets.symmetric(
+            horizontal: isTablet ? 20 : 16, vertical: isTablet ? 10 : 8),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(), // Close dialog
+            child: Text('Hủy',
+                style: TextStyle(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.7),
+                    fontSize: isTablet ? 17 : 15)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              controller.deleteTask(task.id);
+              Get.back(); // Close dialog
+              Get.back(); // Pop back to list screen
+              Get.snackbar(
+                '🗑️ Đã xóa!',
+                'Công việc "${task.title}" đã được xóa thành công.',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Colors.red.shade600,
+                colorText: Colors.white,
+                icon: Icon(Icons.delete_forever_rounded, color: Colors.white),
+                margin: EdgeInsets.all(10),
+                borderRadius: 10,
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade600, // Red button for delete
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              padding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 20 : 16, vertical: isTablet ? 10 : 8),
+            ),
+            child: Text('Xác nhận xóa',
+                style: TextStyle(fontSize: isTablet ? 17 : 15)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _categoryToString(String category) {
+    switch (category) {
+      case 'study':
+        return 'Học tập';
+      case 'lifestyle':
+        return 'Phong cách sống';
+      case 'skill':
+        return 'Kỹ năng';
+      case 'entertainment':
+        return 'Giải trí';
+      case 'work':
+        return 'Công việc';
+      case 'personal':
+        return 'Cá nhân';
+      default:
+        return category;
+    }
+  }
+
+  Color _getCategoryColorByName(String categoryName) {
+    switch (categoryName) {
+      case 'study':
+        return const Color(0xFF4A90E2); // Blue
+      case 'lifestyle':
+        return const Color(0xFF50C878); // Emerald Green
+      case 'skill':
+        return const Color(0xFFF39C12); // Orange
+      case 'entertainment':
+        return const Color(0xFFE74C3C); // Red
+      case 'work':
+        return const Color(0xFF8E44AD); // Amethyst
+      case 'personal':
+        return const Color(0xFF3498DB); // Peter River Blue
+      default:
+        return Colors.grey.shade600;
+    }
+  }
+}

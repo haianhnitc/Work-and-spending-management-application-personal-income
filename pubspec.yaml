@@ -1,0 +1,43 @@
+name: task_expense_manager
+description: A Flutter app for managing tasks and expenses.
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  get: ^4.6.6
+  firebase_core: ^3.13.1
+  cloud_firestore: ^5.6.8
+  firebase_auth: ^5.5.4
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.19.0
+  shared_preferences: ^2.2.2
+  table_calendar: ^3.0.9
+  fl_chart: ^0.71.0
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+  image_picker: ^1.1.2
+  flutter_animate: ^4.5.2
+  flutter_image_compress: ^2.4.0
+  dartz: ^0.10.1
+  injectable: ^2.5.0
+  get_it: ^8.0.3
+  share_plus: ^11.0.0
+  google_fonts: ^6.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  build_runner: ^2.4.0
+  freezed: ^2.5.2
+  json_serializable: ^6.8.0
+  injectable_generator: ^2.5.0
+
+flutter:
+  uses-material-design: true
+  generate: true

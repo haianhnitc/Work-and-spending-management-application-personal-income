@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "875593479035",
+    "project_id": "task-expense-manager",
+    "storage_bucket": "task-expense-manager.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:875593479035:android:35820027bf21317b4203de",
+        "android_client_info": {
+          "package_name": "com.example.task_expense_manager"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkMz4B1JkU3iqLan7Ynx_KKjF8xQUdGPo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
