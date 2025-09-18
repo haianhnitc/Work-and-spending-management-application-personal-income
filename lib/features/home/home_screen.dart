@@ -322,7 +322,7 @@ class HomeScreen extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
-                                'Hạn: ${DateFormat('dd/MM').format(task.dueDate)} - ${_categoryToString(task.category)}',
+                                'Hạn: ${DateFormat('dd/MM').format(task.dueDate)} - ${categoryToString(task.category)}',
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodySmall
@@ -538,7 +538,7 @@ class HomeScreen extends StatelessWidget {
             ),
             SizedBox(width: isTablet ? 8 : 6),
             Text(
-              _categoryToString(entry.key),
+              categoryToString(entry.key),
               style: Theme.of(Get.context!).textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
@@ -547,42 +547,5 @@ class HomeScreen extends StatelessWidget {
         );
       }).toList(),
     );
-  }
-
-  String _categoryToString(String category) {
-    switch (category) {
-      case 'study':
-        return 'Học tập';
-      case 'lifestyle':
-        return 'Phong cách sống';
-      case 'skill':
-        return 'Kỹ năng';
-      case 'entertainment':
-        return 'Giải trí';
-      case 'work':
-        return 'Công việc';
-      case 'personal':
-        return 'Cá nhân';
-      case 'food':
-        return 'Ăn uống';
-      case 'transport':
-        return 'Đi lại';
-      case 'shopping':
-        return 'Mua sắm';
-      case 'health':
-        return 'Sức khỏe';
-      case 'education':
-        return 'Giáo dục';
-      case 'utilities':
-        return 'Tiện ích';
-      case 'salary':
-        return 'Lương';
-      case 'investment':
-        return 'Đầu tư';
-      case 'gift':
-        return 'Quà tặng';
-      default:
-        return category;
-    }
   }
 }

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../../core/constants/app_enums.dart';
+import '../../../../core/widgets/chart_widgets.dart';
 import '../controllers/expense_controller.dart';
 import 'create_expense_screen.dart';
 
@@ -26,7 +27,7 @@ class ExpenseListScreen extends StatelessWidget {
                     label: Text((controller.selectedCategory.value),
                         style: TextStyle(color: Colors.blueAccent)),
                     backgroundColor: Colors.white24,
-                    onDeleted: () => controller.selectedCategory.value = '',
+                    onDeleted: () => controller.clearCategoryFilter(),
                   ).animate().fadeIn(duration: 200.ms)
                 : SizedBox.shrink()),
             IconButton(
@@ -73,19 +74,6 @@ class ExpenseListScreen extends StatelessWidget {
   }
 
   Widget _buildOverview(BuildContext context, bool isTablet) {
-    final expenses = controller.expenses.where((expense) {
-      final matchesCategory = controller.selectedCategory.value.isEmpty ||
-          expense.category == controller.selectedCategory.value;
-      final matchesTime = controller.filterByTime(expense.date);
-      return matchesCategory && matchesTime;
-    }).toList();
-    final totalExpense = expenses
-        .where((e) => e.amount < 0)
-        .fold(0.0, (sum, e) => sum + e.amount.abs());
-    final totalIncome = expenses
-        .where((e) => e.amount > 0)
-        .fold(0.0, (sum, e) => sum + e.amount);
-
     return Container(
       padding: EdgeInsets.all(isTablet ? 16 : 8),
       color: Theme.of(context).brightness == Brightness.dark
@@ -105,16 +93,16 @@ class ExpenseListScreen extends StatelessWidget {
                   DropdownMenuItem(value: 'month', child: Text('Tháng này')),
                   DropdownMenuItem(value: 'year', child: Text('Năm nay')),
                 ],
-                onChanged: (value) => controller.timeFilter.value = value!,
+                onChanged: (value) => controller.setTimeFilter(value!),
               ),
             ],
           ),
           SizedBox(height: 4),
           Text(
-              'Chi: ${NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ').format(totalExpense)}',
+              'Chi: ${NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ').format(controller.totalExpense)}',
               style: Theme.of(context).textTheme.bodyMedium),
           Text(
-              'Thu: ${NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ').format(totalIncome)}',
+              'Thu: ${NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ').format(controller.totalIncome)}',
               style: Theme.of(context).textTheme.bodyMedium),
         ],
       ),
@@ -122,52 +110,58 @@ class ExpenseListScreen extends StatelessWidget {
   }
 
   Widget _buildPieChart(BuildContext context, bool isTablet) {
-    final expenses = controller.expenses.where((expense) {
-      final matchesTime = controller.filterByTime(expense.date);
-      return matchesTime && expense.amount < 0;
-    }).toList();
-
-    final categoryTotals = <String, double>{};
-    for (var category in Category.values) {
-      categoryTotals[category.name] = expenses
-          .where((e) => e.category == category.name)
-          .fold(0.0, (sum, e) => sum + e.amount.abs());
-    }
-
-    final sections = categoryTotals.entries
-        .toList()
-        .asMap()
-        .entries
-        .map((entry) => PieChartSectionData(
-              color: getCategoryColor(entry.key),
-              value: entry.value.value,
-              title: (entry.value.key),
-              radius: 50,
-              titleStyle:
-                  TextStyle(fontSize: isTablet ? 14 : 12, color: Colors.white),
-            ))
-        .toList();
+    final categoryTotals = controller.categoryTotals;
 
     return Container(
-      height: isTablet ? 200 : 150,
-      padding: EdgeInsets.all(16),
-      child: PieChart(
-        PieChartData(
-          sections: sections.isEmpty
-              ? [
-                  PieChartSectionData(
-                    color: Colors.grey,
-                    value: 1,
-                    title: 'Không có dữ liệu',
-                    radius: 50,
-                  )
-                ]
-              : sections,
-          centerSpaceRadius: 40,
-          sectionsSpace: 2,
-        ),
+      height: isTablet ? 280 : 230,
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        children: [
+          // Fixed height container để layout luôn consistent
+          Container(
+            height: 24,
+            child: Text(
+              controller.selectedCategory.value.isNotEmpty 
+                  ? 'Biểu đồ: ${controller.selectedCategory.value}'
+                  : 'Biểu đồ chi tiêu theo danh mục',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+          ),
+          SizedBox(height: 8),
+          // Chart Type Selector
+          ChartSelector(
+            selectedChartType: controller.selectedChartType.value,
+            onChartTypeChanged: controller.setChartType,
+            isTablet: isTablet,
+          ),
+          SizedBox(height: 12),
+          // Chart Display
+          Expanded(
+            child: _buildSelectedChart(context, categoryTotals, isTablet),
+          ),
+        ],
       ),
     ).animate().fadeIn(duration: 300.ms);
+  }
+
+  Widget _buildSelectedChart(BuildContext context, Map<String, double> categoryTotals, bool isTablet) {
+    switch (controller.selectedChartType.value) {
+      case ChartType.pie:
+        return CustomPieChart(
+          categoryTotals: categoryTotals,
+          isTablet: isTablet,
+        );
+      case ChartType.bar:
+        return CustomBarChart(
+          categoryTotals: categoryTotals,
+          isTablet: isTablet,
+        );
+      case ChartType.line:
+        return CustomLineChart(
+          categoryTotals: categoryTotals,
+          isTablet: isTablet,
+        );
+    }
   }
 
   Widget _buildExpenseList(BuildContext context, String filter, bool isTablet) {
@@ -175,27 +169,18 @@ class ExpenseListScreen extends StatelessWidget {
       if (controller.isLoading.value) {
         return Center(child: CircularProgressIndicator());
       }
-      final expenses = controller.expenses.where((expense) {
-        final matchesCategory = controller.selectedCategory.value.isEmpty ||
-            expense.category == controller.selectedCategory.value;
-        final matchesTime = controller.filterByTime(expense.date);
-        if (filter == 'all') return matchesCategory && matchesTime;
+      final expenses = controller.filteredExpenses.where((expense) {
+        if (filter == 'all') return true;
         if (filter == 'necessary') {
-          return matchesCategory &&
-              matchesTime &&
-              expense.reason == Reason.necessary;
+          return expense.reason == Reason.necessary;
         }
         if (filter == 'emotional') {
-          return matchesCategory &&
-              matchesTime &&
-              expense.reason == Reason.emotional;
+          return expense.reason == Reason.emotional;
         }
         if (filter == 'reward') {
-          return matchesCategory &&
-              matchesTime &&
-              expense.reason == Reason.reward;
+          return expense.reason == Reason.reward;
         }
-        return matchesCategory && matchesTime;
+        return true;
       }).toList();
 
       if (expenses.isEmpty) {
@@ -263,14 +248,14 @@ class ExpenseListScreen extends StatelessWidget {
                           child: Text(categoryToString(category))))
                       .toList(),
                   onChanged: (value) {
-                    controller.selectedCategory.value = value ?? '';
+                    controller.setCategoryFilter(value ?? '');
                     Get.back();
                   },
                 ),
                 if (controller.selectedCategory.value.isNotEmpty)
                   TextButton(
                     onPressed: () {
-                      controller.selectedCategory.value = '';
+                      controller.clearCategoryFilter();
                       Get.back();
                     },
                     child:

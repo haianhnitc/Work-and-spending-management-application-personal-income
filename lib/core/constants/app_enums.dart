@@ -6,6 +6,8 @@ enum Mood { happy, neutral, sad }
 
 enum Reason { necessary, emotional, reward, other }
 
+enum ChartType { pie, bar, line }
+
 enum Category {
   study,
   lifestyle,
@@ -175,5 +177,66 @@ String categoryToString(dynamic category) {
       return 'Khác';
     default:
       return 'Khác';
+  }
+}
+
+String chartTypeToString(ChartType chartType) {
+  switch (chartType) {
+    case ChartType.pie:
+      return 'Biểu đồ tròn';
+    case ChartType.bar:
+      return 'Biểu đồ cột';
+    case ChartType.line:
+      return 'Biểu đồ đường';
+  }
+}
+
+IconData getChartTypeIcon(ChartType chartType) {
+  switch (chartType) {
+    case ChartType.pie:
+      return Icons.pie_chart;
+    case ChartType.bar:
+      return Icons.bar_chart;
+    case ChartType.line:
+      return Icons.show_chart;
+  }
+}
+
+String displayNameToCategory(String displayName) {
+  switch (displayName) {
+    case 'Học tập':
+      return 'study';
+    case 'Phong cách sống':
+      return 'lifestyle';
+    case 'Kỹ năng':
+      return 'skill';
+    case 'Giải trí':
+      return 'entertainment';
+    case 'Công việc':
+      return 'work';
+    case 'Cá nhân':
+      return 'personal';
+    case 'Ăn uống':
+      return 'food';
+    case 'Đi lại':
+      return 'transport';
+    case 'Mua sắm':
+      return 'shopping';
+    case 'Sức khỏe':
+      return 'health';
+    case 'Giáo dục':
+      return 'education';
+    case 'Tiện ích':
+      return 'utilities';
+    case 'Lương':
+      return 'salary';
+    case 'Đầu tư':
+      return 'investment';
+    case 'Quà tặng':
+      return 'gift';
+    case 'Khác':
+      return 'other';
+    default:
+      return displayName; // If it's already a category key, return as is
   }
 }

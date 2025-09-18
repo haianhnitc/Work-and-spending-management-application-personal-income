@@ -4,12 +4,11 @@ import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../../core/constants/app_enums.dart';
+import '../../../../core/widgets/chart_widgets.dart';
 import '../controllers/task_controller.dart';
 
 class TaskListScreen extends StatelessWidget {
   final TaskController controller = Get.find<TaskController>();
-  final RxString _selectedCategory = RxString('');
-  final RxString _searchQuery = RxString('');
 
   @override
   Widget build(BuildContext context) {
@@ -22,12 +21,12 @@ class TaskListScreen extends StatelessWidget {
               style: Theme.of(context).appBarTheme.titleTextStyle),
           backgroundColor: Theme.of(context).primaryColor,
           actions: [
-            Obx(() => _selectedCategory.value.isNotEmpty
+            Obx(() => controller.selectedCategory.value.isNotEmpty
                 ? Chip(
-                    label: Text(categoryToString(_selectedCategory.value),
+                    label: Text(categoryToString(controller.selectedCategory.value),
                         style: TextStyle(color: Colors.white)),
                     backgroundColor: Colors.white24,
-                    onDeleted: () => _selectedCategory.value = '',
+                    onDeleted: () => controller.clearCategoryFilter(),
                   ).animate().fadeIn(duration: 200.ms)
                 : SizedBox.shrink()),
             IconButton(
@@ -80,17 +79,6 @@ class TaskListScreen extends StatelessWidget {
   }
 
   Widget _buildOverview(BuildContext context, bool isTablet) {
-    final tasks = controller.tasks.where((task) {
-      final matchesCategory = _selectedCategory.value.isEmpty ||
-          task.category == _selectedCategory.value;
-      final matchesSearch = _searchQuery.value.isEmpty ||
-          task.title.toLowerCase().contains(_searchQuery.value.toLowerCase());
-      return matchesCategory && matchesSearch;
-    }).toList();
-    final completed = tasks.where((task) => task.isCompleted).length;
-    final total = tasks.length;
-    final progress = total > 0 ? completed / total : 0.0;
-
     return Container(
       padding: EdgeInsets.all(isTablet ? 16 : 8),
       color: Theme.of(context).brightness == Brightness.dark
@@ -105,7 +93,7 @@ class TaskListScreen extends StatelessWidget {
                 Text('Tổng quan',
                     style: Theme.of(context).textTheme.titleMedium),
                 SizedBox(height: 4),
-                Text('Hoàn thành: $completed/$total',
+                Text('Hoàn thành: ${controller.completedCount}/${controller.totalCount}',
                     style: Theme.of(context).textTheme.bodyMedium),
               ],
             ),
@@ -113,7 +101,7 @@ class TaskListScreen extends StatelessWidget {
           SizedBox(
             width: 100,
             child: LinearProgressIndicator(
-              value: progress,
+              value: controller.completionProgress,
               color: Theme.of(context).primaryColor,
               backgroundColor: Colors.grey[300],
             ),
@@ -124,47 +112,58 @@ class TaskListScreen extends StatelessWidget {
   }
 
   Widget _buildPieChart(BuildContext context, bool isTablet) {
-    final tasks = controller.tasks;
-    final categoryTotals = <String, int>{};
-    for (var category in Category.values) {
-      categoryTotals[category.name] =
-          tasks.where((t) => t.category == category.name).length;
-    }
-
-    final sections = categoryTotals.entries
-        .toList()
-        .asMap()
-        .entries
-        .map((entry) => PieChartSectionData(
-              color: getCategoryColor(entry.key),
-              value: entry.value.value.toDouble(),
-              title: categoryToString(entry.value.key),
-              radius: 50,
-              titleStyle:
-                  TextStyle(fontSize: isTablet ? 14 : 12, color: Colors.white),
-            ))
-        .toList();
+    final categoryTotals = controller.categoryTotals;
 
     return Container(
-      height: isTablet ? 200 : 150,
-      padding: EdgeInsets.all(16),
-      child: PieChart(
-        PieChartData(
-          sections: sections.isEmpty
-              ? [
-                  PieChartSectionData(
-                    color: Colors.grey,
-                    value: 1,
-                    title: 'Không có dữ liệu',
-                    radius: 50,
-                  )
-                ]
-              : sections,
-          centerSpaceRadius: 40,
-          sectionsSpace: 2,
-        ),
+      height: isTablet ? 280 : 230,
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        children: [
+          // Fixed height container để layout luôn consistent
+          Container(
+            height: 24,
+            child: Text(
+              controller.selectedCategory.value.isNotEmpty || controller.searchQuery.value.isNotEmpty
+                  ? 'Biểu đồ: ${controller.selectedCategory.value.isNotEmpty ? controller.selectedCategory.value : 'Kết quả tìm kiếm'}'
+                  : 'Biểu đồ công việc theo danh mục',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+          ),
+          SizedBox(height: 8),
+          // Chart Type Selector
+          ChartSelector(
+            selectedChartType: controller.selectedChartType.value,
+            onChartTypeChanged: controller.setChartType,
+            isTablet: isTablet,
+          ),
+          SizedBox(height: 12),
+          // Chart Display
+          Expanded(
+            child: _buildSelectedChart(context, categoryTotals, isTablet),
+          ),
+        ],
       ),
     ).animate().fadeIn(duration: 300.ms);
+  }
+
+  Widget _buildSelectedChart(BuildContext context, Map<String, int> categoryTotals, bool isTablet) {
+    switch (controller.selectedChartType.value) {
+      case ChartType.pie:
+        return CustomTaskPieChart(
+          categoryTotals: categoryTotals,
+          isTablet: isTablet,
+        );
+      case ChartType.bar:
+        return CustomTaskBarChart(
+          categoryTotals: categoryTotals,
+          isTablet: isTablet,
+        );
+      case ChartType.line:
+        return CustomTaskLineChart(
+          categoryTotals: categoryTotals,
+          isTablet: isTablet,
+        );
+    }
   }
 
   Widget _buildTaskList(BuildContext context, String filter, bool isTablet) {
@@ -176,34 +175,23 @@ class TaskListScreen extends StatelessWidget {
       final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
       final endOfWeek = startOfWeek.add(Duration(days: 7));
 
-      final tasks = controller.tasks.where((task) {
-        final matchesCategory = _selectedCategory.value.isEmpty ||
-            task.category == _selectedCategory.value;
-        final matchesSearch = _searchQuery.value.isEmpty ||
-            task.title.toLowerCase().contains(_searchQuery.value.toLowerCase());
+      final tasks = controller.filteredTasks.where((task) {
         switch (filter) {
           case 'all':
-            return matchesCategory && matchesSearch;
+            return true;
           case 'today':
-            return matchesCategory &&
-                matchesSearch &&
-                task.dueDate.day == today.day &&
+            return task.dueDate.day == today.day &&
                 task.dueDate.month == today.month &&
                 task.dueDate.year == today.year;
           case 'this_week':
-            return matchesCategory &&
-                matchesSearch &&
-                task.dueDate.isAfter(startOfWeek.subtract(Duration(days: 1))) &&
+            return task.dueDate.isAfter(startOfWeek.subtract(Duration(days: 1))) &&
                 task.dueDate.isBefore(endOfWeek.add(Duration(days: 1)));
           case 'overdue':
-            return matchesCategory &&
-                matchesSearch &&
-                task.dueDate.isBefore(today) &&
-                !task.isCompleted;
+            return task.dueDate.isBefore(today) && !task.isCompleted;
           case 'completed':
-            return matchesCategory && matchesSearch && task.isCompleted;
+            return task.isCompleted;
           default:
-            return matchesCategory && matchesSearch;
+            return true;
         }
       }).toList();
 
@@ -261,9 +249,9 @@ class TaskListScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButton<String>(
-                  value: _selectedCategory.value.isEmpty
+                  value: controller.selectedCategory.value.isEmpty
                       ? null
-                      : _selectedCategory.value,
+                      : controller.selectedCategory.value,
                   hint: Text('Tất cả danh mục'),
                   isExpanded: true,
                   items: Category.values
@@ -272,14 +260,14 @@ class TaskListScreen extends StatelessWidget {
                           child: Text(categoryToString(category.name))))
                       .toList(),
                   onChanged: (value) {
-                    _selectedCategory.value = value ?? '';
+                    controller.setCategoryFilter(value ?? '');
                     Get.back();
                   },
                 ),
-                if (_selectedCategory.value.isNotEmpty)
+                if (controller.selectedCategory.value.isNotEmpty)
                   TextButton(
                     onPressed: () {
-                      _selectedCategory.value = '';
+                      controller.clearCategoryFilter();
                       Get.back();
                     },
                     child:
@@ -297,7 +285,7 @@ class TaskListScreen extends StatelessWidget {
       builder: (context) => AlertDialog(
         title: Text('Tìm kiếm công việc'),
         content: TextField(
-          onChanged: (value) => _searchQuery.value = value,
+          onChanged: (value) => controller.setSearchQuery(value),
           decoration: InputDecoration(
             hintText: 'Nhập tiêu đề công việc...',
             border: OutlineInputBorder(),
@@ -308,7 +296,7 @@ class TaskListScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () {
-              _searchQuery.value = '';
+              controller.clearSearch();
               Get.back();
             },
             child: Text('Xóa'),

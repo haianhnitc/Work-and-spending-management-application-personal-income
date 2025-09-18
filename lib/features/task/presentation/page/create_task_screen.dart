@@ -123,7 +123,7 @@ class CreateTaskScreen extends StatelessWidget {
                         estimatedCost: double.tryParse(_estimatedCostController
                             .text
                             .replaceAll('.', '')
-                            .replaceAll(',', '')), // Xử lý dấu phân cách
+                            .replaceAll(',', '')),
                         category: _category.value,
                         isCompleted: task?.isCompleted ?? false,
                         createdAt: task?.createdAt ?? DateTime.now(),
