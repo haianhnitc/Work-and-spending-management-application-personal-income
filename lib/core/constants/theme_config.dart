@@ -5,9 +5,9 @@ class ThemeConfig {
   static ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
     colorScheme: ColorScheme.light(
-      primary: const Color(0xFF42A5F5), // Blue 400
+      primary: const Color(0xFF42A5F5),
       onPrimary: Colors.white,
-      secondary: const Color(0xFF90CAF9), // Blue 200
+      secondary: const Color(0xFF90CAF9),
       onSecondary: Colors.black,
       error: Colors.red,
       onError: Colors.white,
@@ -16,12 +16,12 @@ class ThemeConfig {
       surface: Colors.white,
       onSurface: Colors.black87,
     ),
-    scaffoldBackgroundColor: const Color(0xFFF0F2F5), // Light grey background
+    scaffoldBackgroundColor: const Color(0xFFF0F2F5),
     textTheme: TextTheme(
       titleLarge: GoogleFonts.poppins(
-        fontSize: 28, // Slightly larger for impact
+        fontSize: 28,
         fontWeight: FontWeight.bold,
-        color: const Color(0xFF2C3E50), // Darker text for contrast
+        color: const Color(0xFF2C3E50),
       ),
       titleMedium: GoogleFonts.poppins(
         fontSize: 20,
@@ -38,33 +38,31 @@ class ThemeConfig {
         backgroundColor: const Color(0xFF42A5F5),
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 8, // Increased elevation for a modern feel
+        elevation: 8,
         shadowColor: const Color(0xFF42A5F5).withOpacity(0.3),
-        padding: const EdgeInsets.symmetric(
-            horizontal: 24, vertical: 12), // Larger padding
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       ).copyWith(
         overlayColor: MaterialStateProperty.all(Colors.blue.withOpacity(0.1)),
       ),
     ),
-    cardTheme: CardTheme(
-      elevation: 6, // Slightly less elevation but still noticeable
+    cardTheme: CardThemeData(
+      elevation: 6,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       color: Colors.white,
-      surfaceTintColor: Colors.transparent, // Use transparent for light theme
+      surfaceTintColor: Colors.transparent,
     ),
     inputDecorationTheme: InputDecorationTheme(
       border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none), // Softer borders
+          borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
       filled: true,
-      fillColor: const Color(0xFFE8EEF4), // Lighter fill color
+      fillColor: const Color(0xFFE8EEF4),
       prefixIconColor: const Color(0xFF42A5F5),
       hintStyle: GoogleFonts.poppins(color: Colors.grey[500], fontSize: 14),
       contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
     ),
     appBarTheme: AppBarTheme(
-      backgroundColor: const Color(0xFF42A5F5), // Primary color for app bar
-      elevation: 0, // Flat design
+      backgroundColor: const Color(0xFF42A5F5),
+      elevation: 0,
       titleTextStyle: GoogleFonts.poppins(
         fontSize: 20,
         fontWeight: FontWeight.w600,
@@ -87,15 +85,15 @@ class ThemeConfig {
   static ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
     colorScheme: ColorScheme.dark(
-      primary: const Color(0xFF90CAF9), // Lighter blue for dark theme
+      primary: const Color(0xFF90CAF9),
       onPrimary: Colors.black,
-      secondary: const Color(0xFF64B5F6), // Darker blue
+      secondary: const Color(0xFF64B5F6),
       onSecondary: Colors.white,
       error: Colors.redAccent,
       onError: Colors.black,
-      background: const Color(0xFF1A1A2E), // Deep dark background
+      background: const Color(0xFF1A1A2E),
       onBackground: Colors.white70,
-      surface: const Color(0xFF2C2C4B), // Slightly lighter surface
+      surface: const Color(0xFF2C2C4B),
       onSurface: Colors.white70,
     ),
     scaffoldBackgroundColor: const Color(0xFF1A1A2E),
@@ -118,7 +116,7 @@ class ThemeConfig {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: const Color(0xFF90CAF9),
-        foregroundColor: Colors.black87, // Dark text on light button
+        foregroundColor: Colors.black87,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         elevation: 8,
         shadowColor: const Color(0xFF90CAF9).withOpacity(0.3),
@@ -127,7 +125,7 @@ class ThemeConfig {
         overlayColor: MaterialStateProperty.all(Colors.blue.withOpacity(0.1)),
       ),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 6,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       color: const Color(0xFF2C2C4B),
@@ -137,13 +135,13 @@ class ThemeConfig {
       border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
       filled: true,
-      fillColor: const Color(0xFF3A3A5A), // Darker fill color
+      fillColor: const Color(0xFF3A3A5A),
       prefixIconColor: const Color(0xFF90CAF9),
       hintStyle: GoogleFonts.poppins(color: Colors.grey[400], fontSize: 14),
       contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
     ),
     appBarTheme: AppBarTheme(
-      backgroundColor: const Color(0xFF1A1A2E), // Dark background for app bar
+      backgroundColor: const Color(0xFF1A1A2E),
       elevation: 0,
       titleTextStyle: GoogleFonts.poppins(
         fontSize: 20,

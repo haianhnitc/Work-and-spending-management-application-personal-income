@@ -19,6 +19,10 @@ class AuthUseCase {
     await _authRepository.signOut();
   }
 
+  // Future<void> sendPasswordResetEmail(String email) async {
+  //   await _authRepository.sendPasswordResetEmail(email);
+  // }
+
   String? getCurrentUserId() {
     return _authRepository.getCurrentUser()?.uid;
   }

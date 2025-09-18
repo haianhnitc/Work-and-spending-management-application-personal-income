@@ -8,5 +8,10 @@ final getIt = GetIt.instance;
 @InjectableInit()
 void configureDependencies() {
   getIt.init();
-  getIt.registerSingleton<FirebaseFirestore>(FirebaseFirestore.instance);
+}
+
+@module
+abstract class RegisterModule {
+  @singleton
+  FirebaseFirestore get firestore => FirebaseFirestore.instance;
 }

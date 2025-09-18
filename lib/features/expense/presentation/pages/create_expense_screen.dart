@@ -92,8 +92,8 @@ class CreateExpenseScreen extends StatelessWidget {
                     value: _category.value.isEmpty ? null : _category.value,
                     items: Category.values
                         .map((category) => DropdownMenuItem(
-                            value: category.name,
-                            child: Text(_categoryToString(category.name))))
+                            value: categoryToString(category.name),
+                            child: Text(categoryToString(category))))
                         .toList(),
                     onChanged: (value) => _category.value = value ?? '',
                     validator: (value) => value == null ? 'Bắt buộc' : null,
@@ -106,8 +106,8 @@ class CreateExpenseScreen extends StatelessWidget {
                     ),
                     value: _incomeType.value,
                     items: IncomeType.values
-                        .map((type) =>
-                            DropdownMenuItem(value: type, child: Text('')))
+                        .map((type) => DropdownMenuItem(
+                            value: type, child: Text(getIncomeTypeText(type))))
                         .toList(),
                     onChanged: (value) =>
                         _incomeType.value = value ?? IncomeType.none,
@@ -121,7 +121,7 @@ class CreateExpenseScreen extends StatelessWidget {
                     value: _mood.value,
                     items: Mood.values
                         .map((mood) => DropdownMenuItem(
-                            value: mood, child: Text(_getMoodText(mood))))
+                            value: mood, child: Text(getMoodEmoji(mood, true))))
                         .toList(),
                     onChanged: (value) => _mood.value = value ?? Mood.neutral,
                     validator: (value) => value == null ? 'Bắt buộc' : null,
@@ -135,8 +135,7 @@ class CreateExpenseScreen extends StatelessWidget {
                     value: _reason.value,
                     items: Reason.values
                         .map((reason) => DropdownMenuItem(
-                            value: reason,
-                            child: Text(_reasonToString(reason))))
+                            value: reason, child: Text(reasonToString(reason))))
                         .toList(),
                     onChanged: (value) =>
                         _reason.value = value ?? Reason.necessary,
@@ -221,52 +220,4 @@ class CreateExpenseScreen extends StatelessWidget {
       ),
     );
   }
-
-  String _getMoodText(Mood mood) {
-    switch (mood) {
-      case Mood.happy:
-        return 'Vui 😊';
-      case Mood.neutral:
-        return 'Bình thường 😐';
-      case Mood.sad:
-        return 'Buồn 😞';
-    }
-  }
-
-  String _reasonToString(Reason reason) {
-    switch (reason) {
-      case Reason.necessary:
-        return 'Cần thiết';
-      case Reason.emotional:
-        return 'Cảm xúc';
-      case Reason.reward:
-        return 'Tự thưởng';
-    }
-  }
-
-  String _categoryToString(String category) {
-    switch (category) {
-      case 'study':
-        return 'Học tập';
-      case 'lifestyle':
-        return 'Phong cách sống';
-      case 'skill':
-        return 'Kỹ năng';
-      case 'entertainment':
-        return 'Giải trí';
-      default:
-        return category;
-    }
-  }
-
-  // String _getIncomeTypeText(IncomeType type) {
-  //   switch (type) {
-  //     case IncomeType.fixed:
-  //       return 'Thu nhập cố định';
-  //     case IncomeType.variable:
-  //       return 'Thu nhập không cố định';
-  //     case IncomeType.none:
-  //       return 'Không phải thu nhập';
-  //   }
-  // }
 }

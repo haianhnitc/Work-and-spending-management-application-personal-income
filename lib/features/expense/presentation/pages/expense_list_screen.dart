@@ -9,8 +9,6 @@ import 'create_expense_screen.dart';
 
 class ExpenseListScreen extends StatelessWidget {
   final ExpenseController controller = Get.find<ExpenseController>();
-  final RxString _selectedCategory = RxString('');
-  final RxString _timeFilter = RxString('month'); // week, month, year
 
   @override
   Widget build(BuildContext context) {
@@ -23,12 +21,12 @@ class ExpenseListScreen extends StatelessWidget {
               style: Theme.of(context).appBarTheme.titleTextStyle),
           backgroundColor: Theme.of(context).primaryColor,
           actions: [
-            Obx(() => _selectedCategory.value.isNotEmpty
+            Obx(() => controller.selectedCategory.value.isNotEmpty
                 ? Chip(
-                    label: Text(_categoryToString(_selectedCategory.value),
-                        style: TextStyle(color: Colors.white)),
+                    label: Text((controller.selectedCategory.value),
+                        style: TextStyle(color: Colors.blueAccent)),
                     backgroundColor: Colors.white24,
-                    onDeleted: () => _selectedCategory.value = '',
+                    onDeleted: () => controller.selectedCategory.value = '',
                   ).animate().fadeIn(duration: 200.ms)
                 : SizedBox.shrink()),
             IconButton(
@@ -76,9 +74,9 @@ class ExpenseListScreen extends StatelessWidget {
 
   Widget _buildOverview(BuildContext context, bool isTablet) {
     final expenses = controller.expenses.where((expense) {
-      final matchesCategory = _selectedCategory.value.isEmpty ||
-          expense.category == _selectedCategory.value;
-      final matchesTime = _filterByTime(expense.date);
+      final matchesCategory = controller.selectedCategory.value.isEmpty ||
+          expense.category == controller.selectedCategory.value;
+      final matchesTime = controller.filterByTime(expense.date);
       return matchesCategory && matchesTime;
     }).toList();
     final totalExpense = expenses
@@ -101,13 +99,13 @@ class ExpenseListScreen extends StatelessWidget {
             children: [
               Text('Tổng quan', style: Theme.of(context).textTheme.titleMedium),
               DropdownButton<String>(
-                value: _timeFilter.value,
+                value: controller.timeFilter.value,
                 items: [
                   DropdownMenuItem(value: 'week', child: Text('Tuần này')),
                   DropdownMenuItem(value: 'month', child: Text('Tháng này')),
                   DropdownMenuItem(value: 'year', child: Text('Năm nay')),
                 ],
-                onChanged: (value) => _timeFilter.value = value!,
+                onChanged: (value) => controller.timeFilter.value = value!,
               ),
             ],
           ),
@@ -125,7 +123,7 @@ class ExpenseListScreen extends StatelessWidget {
 
   Widget _buildPieChart(BuildContext context, bool isTablet) {
     final expenses = controller.expenses.where((expense) {
-      final matchesTime = _filterByTime(expense.date);
+      final matchesTime = controller.filterByTime(expense.date);
       return matchesTime && expense.amount < 0;
     }).toList();
 
@@ -141,9 +139,9 @@ class ExpenseListScreen extends StatelessWidget {
         .asMap()
         .entries
         .map((entry) => PieChartSectionData(
-              color: _getCategoryColor(entry.key),
+              color: getCategoryColor(entry.key),
               value: entry.value.value,
-              title: _categoryToString(entry.value.key),
+              title: (entry.value.key),
               radius: 50,
               titleStyle:
                   TextStyle(fontSize: isTablet ? 14 : 12, color: Colors.white),
@@ -172,40 +170,31 @@ class ExpenseListScreen extends StatelessWidget {
     ).animate().fadeIn(duration: 300.ms);
   }
 
-  bool _filterByTime(DateTime date) {
-    final now = DateTime.now();
-    if (_timeFilter.value == 'week') {
-      final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-      return date.isAfter(startOfWeek.subtract(Duration(days: 1)));
-    } else if (_timeFilter.value == 'month') {
-      return date.month == now.month && date.year == now.year;
-    } else {
-      return date.year == now.year;
-    }
-  }
-
   Widget _buildExpenseList(BuildContext context, String filter, bool isTablet) {
     return Obx(() {
       if (controller.isLoading.value) {
         return Center(child: CircularProgressIndicator());
       }
       final expenses = controller.expenses.where((expense) {
-        final matchesCategory = _selectedCategory.value.isEmpty ||
-            expense.category == _selectedCategory.value;
-        final matchesTime = _filterByTime(expense.date);
+        final matchesCategory = controller.selectedCategory.value.isEmpty ||
+            expense.category == controller.selectedCategory.value;
+        final matchesTime = controller.filterByTime(expense.date);
         if (filter == 'all') return matchesCategory && matchesTime;
-        if (filter == 'necessary')
+        if (filter == 'necessary') {
           return matchesCategory &&
               matchesTime &&
               expense.reason == Reason.necessary;
-        if (filter == 'emotional')
+        }
+        if (filter == 'emotional') {
           return matchesCategory &&
               matchesTime &&
               expense.reason == Reason.emotional;
-        if (filter == 'reward')
+        }
+        if (filter == 'reward') {
           return matchesCategory &&
               matchesTime &&
               expense.reason == Reason.reward;
+        }
         return matchesCategory && matchesTime;
       }).toList();
 
@@ -222,7 +211,10 @@ class ExpenseListScreen extends StatelessWidget {
             key: Key(expense.id),
             onDismissed: (direction) => controller.deleteExpense(expense.id),
             background: Container(
-              color: Colors.red,
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              ),
               alignment: Alignment.centerRight,
               padding: EdgeInsets.only(right: 16),
               child: Icon(Icons.delete, color: Colors.white),
@@ -230,13 +222,13 @@ class ExpenseListScreen extends StatelessWidget {
             child: Card(
               child: ListTile(
                 leading: Text(
-                  _getMoodEmoji(expense.mood),
+                  getMoodEmoji(expense.mood, false),
                   style: TextStyle(fontSize: isTablet ? 24 : 20),
                 ),
                 title: Text(expense.title,
                     style: Theme.of(context).textTheme.bodyLarge),
                 subtitle: Text(
-                  '${NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ').format(expense.amount.abs())}\nDanh mục: ${_categoryToString(expense.category)}\nNgày: ${DateFormat('dd/MM/yyyy').format(expense.date)}',
+                  '${NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ').format(expense.amount.abs())}\nDanh mục: ${(expense.category)}\nNgày: ${DateFormat('dd/MM/yyyy').format(expense.date)}',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 trailing: Icon(Icons.arrow_forward,
@@ -260,25 +252,25 @@ class ExpenseListScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButton<String>(
-                  value: _selectedCategory.value.isEmpty
+                  value: controller.selectedCategory.value.isEmpty
                       ? null
-                      : _selectedCategory.value,
+                      : controller.selectedCategory.value,
                   hint: Text('Tất cả danh mục'),
                   isExpanded: true,
                   items: Category.values
                       .map((category) => DropdownMenuItem(
-                          value: category.name,
-                          child: Text(_categoryToString(category.name))))
+                          value: categoryToString(category.name),
+                          child: Text(categoryToString(category))))
                       .toList(),
                   onChanged: (value) {
-                    _selectedCategory.value = value ?? '';
+                    controller.selectedCategory.value = value ?? '';
                     Get.back();
                   },
                 ),
-                if (_selectedCategory.value.isNotEmpty)
+                if (controller.selectedCategory.value.isNotEmpty)
                   TextButton(
                     onPressed: () {
-                      _selectedCategory.value = '';
+                      controller.selectedCategory.value = '';
                       Get.back();
                     },
                     child:
@@ -288,43 +280,5 @@ class ExpenseListScreen extends StatelessWidget {
             )),
       ).animate().fadeIn(duration: 300.ms),
     );
-  }
-
-  String _getMoodEmoji(Mood mood) {
-    switch (mood) {
-      case Mood.happy:
-        return '😊';
-      case Mood.neutral:
-        return '😐';
-      case Mood.sad:
-        return '😞';
-      default:
-        return '😐';
-    }
-  }
-
-  String _categoryToString(String category) {
-    switch (category) {
-      case 'study':
-        return 'Học tập';
-      case 'lifestyle':
-        return 'Phong cách sống';
-      case 'skill':
-        return 'Kỹ năng';
-      case 'entertainment':
-        return 'Giải trí';
-      default:
-        return category;
-    }
-  }
-
-  Color _getCategoryColor(int index) {
-    const colors = [
-      Colors.blue,
-      Colors.green,
-      Colors.orange,
-      Colors.purple,
-    ];
-    return colors[index % colors.length];
   }
 }

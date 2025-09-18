@@ -31,12 +31,8 @@ mixin _$ExpenseModel {
   Reason get reason => throw _privateConstructorUsedError;
   IncomeType get incomeType => throw _privateConstructorUsedError;
 
-  /// Serializes this ExpenseModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of ExpenseModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ExpenseModelCopyWith<ExpenseModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -70,8 +66,6 @@ class _$ExpenseModelCopyWithImpl<$Res, $Val extends ExpenseModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ExpenseModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -160,8 +154,6 @@ class __$$ExpenseModelImplCopyWithImpl<$Res>
       _$ExpenseModelImpl _value, $Res Function(_$ExpenseModelImpl) _then)
       : super(_value, _then);
 
-  /// Create a copy of ExpenseModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -286,14 +278,12 @@ class _$ExpenseModelImpl implements _ExpenseModel {
                 other.incomeType == incomeType));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, id, userId, title, amount, date,
       category, linkedTaskId, mood, reason, incomeType);
 
-  /// Create a copy of ExpenseModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ExpenseModelImplCopyWith<_$ExpenseModelImpl> get copyWith =>
@@ -343,11 +333,8 @@ abstract class _ExpenseModel implements ExpenseModel {
   Reason get reason;
   @override
   IncomeType get incomeType;
-
-  /// Create a copy of ExpenseModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ExpenseModelImplCopyWith<_$ExpenseModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

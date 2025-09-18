@@ -46,10 +46,11 @@ const _$ReasonEnumMap = {
   Reason.necessary: 'necessary',
   Reason.emotional: 'emotional',
   Reason.reward: 'reward',
+  Reason.other: 'other',
 };
 
 const _$IncomeTypeEnumMap = {
   IncomeType.none: 'none',
-  IncomeType.all: 'all',
-  IncomeType.income: 'income',
+  IncomeType.variable: 'variable',
+  IncomeType.fixed: 'fixed',
 };

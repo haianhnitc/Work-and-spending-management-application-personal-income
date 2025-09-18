@@ -3,10 +3,9 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:task_expense_manager/core/constants/app_enums.dart';
 import '../../data/models/task_model.dart';
 import '../controllers/task_controller.dart';
-import '../../../expense/presentation/controllers/expense_controller.dart';
-import '../../../../core/constants/app_enums.dart';
 import '../../../../routes/app_routes.dart';
 
 class TaskDetailScreen extends StatelessWidget {
@@ -57,14 +56,11 @@ class TaskDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Section for Task Title and Completion Status
             _buildTitleAndStatus(
                     context, task.title, task.isCompleted, isTablet)
                 .animate()
                 .fadeIn(duration: 300.ms, delay: 100.ms),
             SizedBox(height: isTablet ? 24 : 20),
-
-            // Description
             _buildInfoCard(
               context,
               icon: Icons.description_rounded,
@@ -75,19 +71,15 @@ class TaskDetailScreen extends StatelessWidget {
               isTablet: isTablet,
             ).animate().fadeIn(duration: 300.ms, delay: 200.ms),
             SizedBox(height: isTablet ? 16 : 12),
-
-            // Category
             _buildInfoCard(
               context,
               icon: Icons.category_rounded,
               label: 'Danh mục',
-              value: _categoryToString(task.category),
-              color: _getCategoryColorByName(task.category),
+              value: categoryToString(task.category),
+              color: getCategoryColorByName(task.category),
               isTablet: isTablet,
             ).animate().fadeIn(duration: 300.ms, delay: 300.ms),
             SizedBox(height: isTablet ? 16 : 12),
-
-            // Due Date
             _buildInfoCard(
               context,
               icon: Icons.calendar_today_rounded,
@@ -99,8 +91,6 @@ class TaskDetailScreen extends StatelessWidget {
               isTablet: isTablet,
             ).animate().fadeIn(duration: 300.ms, delay: 400.ms),
             SizedBox(height: isTablet ? 16 : 12),
-
-            // Estimated Cost
             _buildInfoCard(
               context,
               icon: Icons.attach_money_rounded,
@@ -112,8 +102,6 @@ class TaskDetailScreen extends StatelessWidget {
               isTablet: isTablet,
             ).animate().fadeIn(duration: 300.ms, delay: 500.ms),
             SizedBox(height: isTablet ? 24 : 20),
-
-            // Completion Toggle
             _buildStatusToggle(context, controller, task, isTablet)
                 .animate()
                 .fadeIn(duration: 300.ms, delay: 600.ms),
@@ -180,9 +168,8 @@ class TaskDetailScreen extends StatelessWidget {
       Color? color,
       required bool isTablet}) {
     return Card(
-      elevation: 6, // Slightly more elevation for depth
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18)), // More rounded
+      elevation: 6,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       color: Theme.of(context).cardTheme.color,
       child: Padding(
         padding: EdgeInsets.all(isTablet ? 24 : 18),
@@ -203,7 +190,7 @@ class TaskDetailScreen extends StatelessWidget {
                           color: Theme.of(context)
                               .colorScheme
                               .onSurface
-                              .withOpacity(0.6), // Softer label color
+                              .withOpacity(0.6),
                           fontWeight: FontWeight.w500,
                           fontSize: isTablet ? 17 : 15,
                         ),
@@ -217,10 +204,8 @@ class TaskDetailScreen extends StatelessWidget {
                           color: color ??
                               Theme.of(context).textTheme.bodyLarge?.color,
                         ),
-                    overflow: TextOverflow.ellipsis, // Handle long text
-                    maxLines: label == 'Mô tả'
-                        ? 5
-                        : 2, // Allow more lines for description
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: label == 'Mô tả' ? 5 : 2,
                   ),
                 ],
               ),
@@ -254,7 +239,6 @@ class TaskDetailScreen extends StatelessWidget {
                     ),
               ),
               Switch.adaptive(
-                // Use adaptive switch for platform consistency
                 value: currentTask.isCompleted,
                 onChanged: (newValue) {
                   final updatedTask = task.copyWith(isCompleted: newValue);
@@ -284,9 +268,7 @@ class TaskDetailScreen extends StatelessWidget {
                 activeColor: Theme.of(context).colorScheme.primary,
                 inactiveThumbColor: Colors.grey.shade400,
                 inactiveTrackColor: Colors.grey.shade300,
-              ).animate().flip(
-                  duration: 500.ms,
-                  delay: 100.ms), // Add a subtle flip animation
+              ).animate().flip(duration: 500.ms, delay: 100.ms),
             ],
           );
         }),
@@ -297,7 +279,7 @@ class TaskDetailScreen extends StatelessWidget {
   void _shareTask(BuildContext context, TaskModel task) {
     final String shareText = "📝 Công việc: ${task.title}\n"
         "📖 Mô tả: ${task.description.isNotEmpty ? task.description : 'Không có mô tả'}\n"
-        "🏷️ Danh mục: ${_categoryToString(task.category)}\n"
+        "🏷️ Danh mục: ${categoryToString(task.category)}\n"
         "📅 Hạn chót: ${DateFormat('dd/MM/yyyy').format(task.dueDate)}\n"
         "💰 Chi phí ước tính: ${task.estimatedCost != null && task.estimatedCost! > 0 ? NumberFormat.currency(locale: 'vi', symbol: '₫').format(task.estimatedCost) : 'Không có'}\n"
         "✅ Trạng thái: ${task.isCompleted ? 'Đã hoàn thành' : 'Đang chờ'}\n\n"
@@ -309,13 +291,10 @@ class TaskDetailScreen extends StatelessWidget {
       BuildContext context, TaskController controller, TaskModel task) {
     Get.dialog(
       AlertDialog(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20)), // Rounded dialog
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('Xác nhận xóa',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .error, // Red title for delete
+                  color: Theme.of(context).colorScheme.error,
                   fontWeight: FontWeight.bold,
                 )),
         content: Column(
@@ -341,7 +320,7 @@ class TaskDetailScreen extends StatelessWidget {
             horizontal: isTablet ? 20 : 16, vertical: isTablet ? 10 : 8),
         actions: [
           TextButton(
-            onPressed: () => Get.back(), // Close dialog
+            onPressed: () => Get.back(),
             child: Text('Hủy',
                 style: TextStyle(
                     color: Theme.of(context)
@@ -353,8 +332,8 @@ class TaskDetailScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               controller.deleteTask(task.id);
-              Get.back(); // Close dialog
-              Get.back(); // Pop back to list screen
+              Get.back();
+              Get.back();
               Get.snackbar(
                 '🗑️ Đã xóa!',
                 'Công việc "${task.title}" đã được xóa thành công.',
@@ -367,7 +346,7 @@ class TaskDetailScreen extends StatelessWidget {
               );
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade600, // Red button for delete
+              backgroundColor: Colors.red.shade600,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
@@ -380,43 +359,5 @@ class TaskDetailScreen extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _categoryToString(String category) {
-    switch (category) {
-      case 'study':
-        return 'Học tập';
-      case 'lifestyle':
-        return 'Phong cách sống';
-      case 'skill':
-        return 'Kỹ năng';
-      case 'entertainment':
-        return 'Giải trí';
-      case 'work':
-        return 'Công việc';
-      case 'personal':
-        return 'Cá nhân';
-      default:
-        return category;
-    }
-  }
-
-  Color _getCategoryColorByName(String categoryName) {
-    switch (categoryName) {
-      case 'study':
-        return const Color(0xFF4A90E2); // Blue
-      case 'lifestyle':
-        return const Color(0xFF50C878); // Emerald Green
-      case 'skill':
-        return const Color(0xFFF39C12); // Orange
-      case 'entertainment':
-        return const Color(0xFFE74C3C); // Red
-      case 'work':
-        return const Color(0xFF8E44AD); // Amethyst
-      case 'personal':
-        return const Color(0xFF3498DB); // Peter River Blue
-      default:
-        return Colors.grey.shade600;
-    }
   }
 }

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:task_expense_manager/features/ai/ai_insight_screen.dart';
 
-import '../features/calendar/calendar_screen.dart';
+import '../features/calendar/presentation/pages/calendar_screen.dart';
 import '../features/expense/presentation/pages/expense_list_screen.dart';
 import '../features/profile/profile_screen.dart';
 import '../features/task/presentation/page/task_list_screen.dart';
 import '../features/home/home_screen.dart';
+import '../features/budget/presentation/pages/budget_list_screen.dart';
 
 class MainController extends GetxController {
   var currentIndex = 0.obs;
@@ -22,7 +24,9 @@ class MainScreen extends StatelessWidget {
     HomeScreen(),
     TaskListScreen(),
     ExpenseListScreen(),
+    BudgetListScreen(),
     CalendarScreen(),
+    AIInsightsScreen(),
     ProfileScreen(),
   ];
 
@@ -42,11 +46,10 @@ class MainScreen extends StatelessWidget {
                 color: Colors.black.withOpacity(0.1),
                 spreadRadius: 0,
                 blurRadius: 10,
-                offset: const Offset(0, -4), // Shadow going up
+                offset: const Offset(0, -4),
               ),
             ],
-            borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(20)), // Rounded top corners
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: BottomNavigationBar(
             items: [
@@ -57,9 +60,12 @@ class MainScreen extends StatelessWidget {
               _buildBottomNavigationBarItem(
                   context, Icons.payments_rounded, 'Expense', 2),
               _buildBottomNavigationBarItem(
-                  context, Icons.calendar_today_rounded, 'Calendar', 3),
+                  context, Icons.account_balance_wallet_rounded, 'Budget', 3),
               _buildBottomNavigationBarItem(
-                  context, Icons.person_rounded, 'Cá nhân', 4),
+                  context, Icons.calendar_today_rounded, 'Calendar', 4),
+              _buildBottomNavigationBarItem(context, Icons.psychology, 'AI', 5),
+              _buildBottomNavigationBarItem(
+                  context, Icons.person_rounded, 'Cá nhân', 6),
             ],
             currentIndex: controller.currentIndex.value,
             selectedItemColor:

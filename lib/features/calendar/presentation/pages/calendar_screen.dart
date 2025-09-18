@@ -4,20 +4,17 @@ import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:task_expense_manager/core/constants/app_enums.dart';
-import '../expense/data/models/expense_model.dart';
-import '../expense/presentation/controllers/expense_controller.dart';
-import '../task/data/models/task_model.dart';
-import '../task/presentation/controllers/task_controller.dart';
-import '../../routes/app_routes.dart'; // Import AppRoutes
+import 'package:task_expense_manager/features/calendar/presentation/controllers/calendar_controller.dart';
+import '../../../expense/data/models/expense_model.dart';
+import '../../../expense/presentation/controllers/expense_controller.dart';
+import '../../../task/data/models/task_model.dart';
+import '../../../task/presentation/controllers/task_controller.dart';
+import '../../../../routes/app_routes.dart';
 
 class CalendarScreen extends StatelessWidget {
   final TaskController taskController = Get.find<TaskController>();
   final ExpenseController expenseController = Get.find<ExpenseController>();
-  final Rx<DateTime> _focusedDay = DateTime.now().obs;
-  final Rx<DateTime?> _selectedDay = Rx<DateTime?>(null);
-  final Rx<CalendarFormat> _calendarFormat = CalendarFormat.month.obs;
-  final RxBool _showTasks = true.obs; // Toggle for showing tasks
-  final RxBool _showExpenses = true.obs; // Toggle for showing expenses
+  final calendarController = Get.put(CalendarController());
 
   @override
   Widget build(BuildContext context) {
@@ -32,12 +29,15 @@ class CalendarScreen extends StatelessWidget {
           Padding(
             padding: EdgeInsets.symmetric(horizontal: isTablet ? 16 : 8),
             child: ToggleButtons(
-              isSelected: [_showTasks.value, _showExpenses.value],
+              isSelected: [
+                calendarController.showTasks.value,
+                calendarController.showExpenses.value
+              ],
               onPressed: (index) {
                 if (index == 0) {
-                  _showTasks.toggle();
+                  calendarController.showTasks.toggle();
                 } else {
-                  _showExpenses.toggle();
+                  calendarController.showExpenses.toggle();
                 }
               },
               borderRadius: BorderRadius.circular(10),
@@ -97,25 +97,25 @@ class CalendarScreen extends StatelessWidget {
               child: TableCalendar(
                 firstDay: DateTime.utc(2020, 1, 1),
                 lastDay: DateTime.utc(2030, 12, 31),
-                focusedDay: _focusedDay.value,
-                calendarFormat: _calendarFormat.value,
+                focusedDay: calendarController.focusedDay.value,
+                calendarFormat: calendarController.calendarFormat.value,
                 selectedDayPredicate: (day) {
-                  return isSameDay(_selectedDay.value, day);
+                  return isSameDay(calendarController.selectedDay.value, day);
                 },
                 onDaySelected: (selectedDay, focusedDay) {
-                  _selectedDay.value = selectedDay;
-                  _focusedDay.value = focusedDay;
+                  calendarController.selectedDay.value = selectedDay;
+                  calendarController.focusedDay.value = focusedDay;
                 },
                 onPageChanged: (focusedDay) {
-                  _focusedDay.value = focusedDay;
+                  calendarController.focusedDay.value = focusedDay;
                 },
                 eventLoader: (day) {
                   List<dynamic> events =
                       allEvents[DateTime(day.year, day.month, day.day)] ?? [];
-                  if (!_showTasks.value) {
+                  if (!calendarController.showTasks.value) {
                     events = events.where((e) => e is! TaskModel).toList();
                   }
-                  if (!_showExpenses.value) {
+                  if (!calendarController.showExpenses.value) {
                     events = events.where((e) => e is! ExpenseModel).toList();
                   }
                   return events;
@@ -184,7 +184,6 @@ class CalendarScreen extends StatelessWidget {
                       ),
                     );
                   },
-                  // Add more custom builders for header, week numbers if needed
                 ),
                 headerStyle: HeaderStyle(
                   formatButtonVisible: false,
@@ -203,9 +202,7 @@ class CalendarScreen extends StatelessWidget {
                       color: Theme.of(context).colorScheme.onSurface,
                       size: isTablet ? 30 : 24),
                   decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .cardTheme
-                        .color, // Consistent with card background
+                    color: Theme.of(context).cardTheme.color,
                     borderRadius:
                         const BorderRadius.vertical(top: Radius.circular(20)),
                   ),
@@ -229,15 +226,14 @@ class CalendarScreen extends StatelessWidget {
                           color: Colors.red.shade400,
                           fontSize: isTablet ? 16 : 14),
                 ),
-                rowHeight: isTablet ? 60 : 45, // Adjust row height
-                // Other calendar settings
+                rowHeight: isTablet ? 60 : 45,
                 availableGestures: AvailableGestures.horizontalSwipe,
               ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
             ),
             SizedBox(height: isTablet ? 24 : 16),
             Expanded(
-              child: _buildEventList(
-                  context, allEvents, _selectedDay.value, isTablet),
+              child: _buildEventList(context, allEvents,
+                  calendarController.selectedDay.value, isTablet),
             ),
           ],
         );
@@ -263,9 +259,10 @@ class CalendarScreen extends StatelessWidget {
                   SizedBox(height: isTablet ? 30 : 20),
                   ElevatedButton.icon(
                     onPressed: () {
-                      Get.back(); // Close bottom sheet
+                      Get.back();
                       Get.toNamed(AppRoutes.createTask, arguments: {
-                        'date': _selectedDay.value ?? DateTime.now()
+                        'date': calendarController.selectedDay.value ??
+                            DateTime.now()
                       });
                     },
                     icon: Icon(Icons.add_task_rounded,
@@ -275,17 +272,17 @@ class CalendarScreen extends StatelessWidget {
                             color: Colors.white, fontSize: isTablet ? 20 : 17)),
                     style:
                         Theme.of(context).elevatedButtonTheme.style!.copyWith(
-                              minimumSize: MaterialStateProperty.all(Size(
-                                  double.infinity,
-                                  isTablet ? 60 : 50)), // Full width
+                              minimumSize: MaterialStateProperty.all(
+                                  Size(double.infinity, isTablet ? 60 : 50)),
                             ),
                   ).animate().scale(duration: 200.ms, delay: 100.ms),
                   SizedBox(height: isTablet ? 20 : 16),
                   ElevatedButton.icon(
                     onPressed: () {
-                      Get.back(); // Close bottom sheet
+                      Get.back();
                       Get.toNamed(AppRoutes.createExpense, arguments: {
-                        'date': _selectedDay.value ?? DateTime.now()
+                        'date': calendarController.selectedDay.value ??
+                            DateTime.now()
                       });
                     },
                     icon: Icon(Icons.add_card_rounded,
@@ -297,9 +294,8 @@ class CalendarScreen extends StatelessWidget {
                         Theme.of(context).elevatedButtonTheme.style!.copyWith(
                               backgroundColor: MaterialStateProperty.all(
                                   Theme.of(context).colorScheme.secondary),
-                              minimumSize: MaterialStateProperty.all(Size(
-                                  double.infinity,
-                                  isTablet ? 60 : 50)), // Full width
+                              minimumSize: MaterialStateProperty.all(
+                                  Size(double.infinity, isTablet ? 60 : 50)),
                             ),
                   ).animate().scale(duration: 200.ms, delay: 200.ms),
                 ],
@@ -321,16 +317,15 @@ class CalendarScreen extends StatelessWidget {
 
     final filteredEvents = events.where((event) {
       if (event is TaskModel) {
-        return _showTasks.value;
+        return calendarController.showTasks.value;
       } else if (event is ExpenseModel) {
-        return _showExpenses.value;
+        return calendarController.showExpenses.value;
       }
       return false;
     }).toList();
 
     if (filteredEvents.isEmpty) return const SizedBox.shrink();
 
-    // Show different markers for tasks and expenses, or a combined count
     return Container(
       width: isTablet ? 32 : 24,
       height: isTablet ? 32 : 24,
@@ -358,7 +353,6 @@ class CalendarScreen extends StatelessWidget {
       return CustomEmptyState(
         icon: Icons.touch_app_rounded,
         message: 'Chọn một ngày để xem sự kiện.',
-        // No button needed here
       );
     }
 
@@ -368,9 +362,9 @@ class CalendarScreen extends StatelessWidget {
 
     final filteredEventsForSelectedDay = eventsForSelectedDay.where((event) {
       if (event is TaskModel) {
-        return _showTasks.value;
+        return calendarController.showTasks.value;
       } else if (event is ExpenseModel) {
-        return _showExpenses.value;
+        return calendarController.showExpenses.value;
       }
       return false;
     }).toList();
@@ -400,7 +394,7 @@ class CalendarScreen extends StatelessWidget {
                   SizedBox(height: isTablet ? 30 : 20),
                   ElevatedButton.icon(
                     onPressed: () {
-                      Get.back(); // Close bottom sheet
+                      Get.back();
                       Get.toNamed(AppRoutes.createTask,
                           arguments: {'date': selectedDay ?? DateTime.now()});
                     },
@@ -411,15 +405,14 @@ class CalendarScreen extends StatelessWidget {
                             color: Colors.white, fontSize: isTablet ? 20 : 17)),
                     style:
                         Theme.of(context).elevatedButtonTheme.style!.copyWith(
-                              minimumSize: MaterialStateProperty.all(Size(
-                                  double.infinity,
-                                  isTablet ? 60 : 50)), // Full width
+                              minimumSize: MaterialStateProperty.all(
+                                  Size(double.infinity, isTablet ? 60 : 50)),
                             ),
                   ).animate().scale(duration: 200.ms, delay: 100.ms),
                   SizedBox(height: isTablet ? 20 : 16),
                   ElevatedButton.icon(
                     onPressed: () {
-                      Get.back(); // Close bottom sheet
+                      Get.back();
                       Get.toNamed(AppRoutes.createExpense,
                           arguments: {'date': selectedDay});
                     },
@@ -432,9 +425,8 @@ class CalendarScreen extends StatelessWidget {
                         Theme.of(context).elevatedButtonTheme.style!.copyWith(
                               backgroundColor: MaterialStateProperty.all(
                                   Theme.of(context).colorScheme.secondary),
-                              minimumSize: MaterialStateProperty.all(Size(
-                                  double.infinity,
-                                  isTablet ? 60 : 50)), // Full width
+                              minimumSize: MaterialStateProperty.all(
+                                  Size(double.infinity, isTablet ? 60 : 50)),
                             ),
                   ).animate().scale(duration: 200.ms, delay: 200.ms),
                 ],
@@ -484,7 +476,7 @@ class CalendarScreen extends StatelessWidget {
           child: Row(
             children: [
               Icon(Icons.task_alt_rounded,
-                  color: _getCategoryColorByName(task.category),
+                  color: getCategoryColorByName(task.category),
                   size: isTablet ? 30 : 26),
               SizedBox(width: isTablet ? 16 : 12),
               Expanded(
@@ -514,7 +506,7 @@ class CalendarScreen extends StatelessWidget {
                     ),
                     SizedBox(height: isTablet ? 4 : 2),
                     Text(
-                      '${_categoryToString(task.category)} - ${task.isCompleted ? 'Hoàn thành' : (task.dueDate.isBefore(DateTime.now()) ? 'Quá hạn' : 'Đang chờ')}',
+                      '${categoryToString(task.category)} - ${task.isCompleted ? 'Hoàn thành' : (task.dueDate.isBefore(DateTime.now()) ? 'Quá hạn' : 'Đang chờ')}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context)
                                 .colorScheme
@@ -549,7 +541,7 @@ class CalendarScreen extends StatelessWidget {
           child: Row(
             children: [
               Icon(Icons.payments_rounded,
-                  color: _getCategoryColorByName(expense.category),
+                  color: getCategoryColorByName(expense.category),
                   size: isTablet ? 30 : 26),
               SizedBox(width: isTablet ? 16 : 12),
               Expanded(
@@ -567,7 +559,7 @@ class CalendarScreen extends StatelessWidget {
                     ),
                     SizedBox(height: isTablet ? 4 : 2),
                     Text(
-                      '${NumberFormat.currency(locale: 'vi', symbol: '₫').format(expense.amount)} - ${_categoryToString(expense.category)}',
+                      '${NumberFormat.currency(locale: 'vi', symbol: '₫').format(expense.amount)} - ${categoryToString(expense.category)}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context)
                                 .colorScheme
@@ -577,7 +569,7 @@ class CalendarScreen extends StatelessWidget {
                           ),
                     ),
                     Text(
-                      'Tâm trạng: ${_getMoodEmoji(expense.mood)}',
+                      'Tâm trạng: ${getMoodEmoji(expense.mood, true)}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context)
                                 .colorScheme
@@ -613,60 +605,8 @@ class CalendarScreen extends StatelessWidget {
     }
     return events;
   }
-
-  String _getMoodEmoji(Mood mood) {
-    switch (mood) {
-      case Mood.happy:
-        return 'Vui 😊';
-      case Mood.neutral:
-        return 'Bình thường 😐';
-      case Mood.sad:
-        return 'Buồn 😞';
-      default:
-        return '😐';
-    }
-  }
-
-  String _categoryToString(String category) {
-    switch (category) {
-      case 'study':
-        return 'Học tập';
-      case 'lifestyle':
-        return 'Phong cách sống';
-      case 'skill':
-        return 'Kỹ năng';
-      case 'entertainment':
-        return 'Giải trí';
-      case 'work':
-        return 'Công việc';
-      case 'personal':
-        return 'Cá nhân';
-      default:
-        return category;
-    }
-  }
-
-  Color _getCategoryColorByName(String categoryName) {
-    switch (categoryName) {
-      case 'study':
-        return const Color(0xFF4A90E2); // Blue
-      case 'lifestyle':
-        return const Color(0xFF50C878); // Emerald Green
-      case 'skill':
-        return const Color(0xFFF39C12); // Orange
-      case 'entertainment':
-        return const Color(0xFFE74C3C); // Red
-      case 'work':
-        return const Color(0xFF8E44AD); // Amethyst
-      case 'personal':
-        return const Color(0xFF3498DB); // Peter River Blue
-      default:
-        return Colors.grey.shade600;
-    }
-  }
 }
 
-// Assume CustomEmptyState is defined elsewhere, e.g., in core/widgets
 class CustomEmptyState extends StatelessWidget {
   final IconData icon;
   final String message;

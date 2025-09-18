@@ -21,7 +21,6 @@ class ProfileScreen extends StatelessWidget {
     final isTablet = MediaQuery.of(context).size.width > 600;
     final user = authController.currentUser.value;
 
-    // Khởi tạo giá trị ban đầu
     _nameController.text = user?.name ?? 'User';
     _loadAvatarBase64(user?.uid);
 
@@ -87,7 +86,6 @@ class ProfileScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Section: Hồ sơ
                     Text(
                       'profile'.tr,
                       style: TextStyle(
@@ -108,8 +106,6 @@ class ProfileScreen extends StatelessWidget {
                       ).animate().fadeIn(duration: 300.ms, delay: 100.ms),
                     ),
                     const SizedBox(height: 16),
-
-                    // Section: Cài đặt
                     Text(
                       'settings'.tr,
                       style: TextStyle(
@@ -155,8 +151,6 @@ class ProfileScreen extends StatelessWidget {
                       ).animate().fadeIn(duration: 300.ms, delay: 300.ms),
                     ),
                     const SizedBox(height: 16),
-
-                    // Section: Quản lý dữ liệu
                     Text(
                       'dataManagement'.tr,
                       style: TextStyle(
@@ -176,8 +170,6 @@ class ProfileScreen extends StatelessWidget {
                       ).animate().fadeIn(duration: 300.ms, delay: 400.ms),
                     ),
                     const SizedBox(height: 16),
-
-                    // Section: Đăng xuất
                     Card(
                       elevation: 2,
                       child: ListTile(
@@ -214,7 +206,6 @@ class ProfileScreen extends StatelessWidget {
         final userId = FirebaseAuth.instance.currentUser?.uid;
         if (userId == null) throw Exception('User not logged in');
 
-        // Nén ảnh
         final compressedFile = await FlutterImageCompress.compressAndGetFile(
           pickedFile.path,
           '${pickedFile.path}_compressed.jpg',
@@ -224,11 +215,9 @@ class ProfileScreen extends StatelessWidget {
         );
         if (compressedFile == null) throw Exception('Compression failed');
 
-        // Chuyển thành base64
         final bytes = await compressedFile.readAsBytes();
         final base64String = base64Encode(bytes);
 
-        // Lưu vào Firestore
         await FirebaseFirestore.instance.collection('users').doc(userId).set(
           {'avatar': base64String},
           SetOptions(merge: true),
@@ -294,7 +283,6 @@ class ProfileScreen extends StatelessWidget {
               title: Text('exportPDF'.tr),
               onTap: () {
                 Get.back();
-                // TODO: Tích hợp xuất PDF (dùng package pdf)
                 Get.snackbar('Export', 'Export PDF (TBD)');
               },
             ),
@@ -302,7 +290,6 @@ class ProfileScreen extends StatelessWidget {
               title: Text('exportCSV'.tr),
               onTap: () {
                 Get.back();
-                // TODO: Tích hợp xuất CSV
                 Get.snackbar('Export', 'Export CSV (TBD)');
               },
             ),

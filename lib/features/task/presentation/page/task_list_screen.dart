@@ -24,7 +24,7 @@ class TaskListScreen extends StatelessWidget {
           actions: [
             Obx(() => _selectedCategory.value.isNotEmpty
                 ? Chip(
-                    label: Text(_categoryToString(_selectedCategory.value),
+                    label: Text(categoryToString(_selectedCategory.value),
                         style: TextStyle(color: Colors.white)),
                     backgroundColor: Colors.white24,
                     onDeleted: () => _selectedCategory.value = '',
@@ -136,9 +136,9 @@ class TaskListScreen extends StatelessWidget {
         .asMap()
         .entries
         .map((entry) => PieChartSectionData(
-              color: _getCategoryColor(entry.key),
+              color: getCategoryColor(entry.key),
               value: entry.value.value.toDouble(),
-              title: _categoryToString(entry.value.key),
+              title: categoryToString(entry.value.key),
               radius: 50,
               titleStyle:
                   TextStyle(fontSize: isTablet ? 14 : 12, color: Colors.white),
@@ -237,7 +237,7 @@ class TaskListScreen extends StatelessWidget {
                 title: Text(task.title,
                     style: Theme.of(context).textTheme.bodyLarge),
                 subtitle: Text(
-                  'Hạn: ${DateFormat('dd/MM/yyyy').format(task.dueDate)}\nDanh mục: ${_categoryToString(task.category)}',
+                  'Hạn: ${DateFormat('dd/MM/yyyy').format(task.dueDate)}\nDanh mục: ${categoryToString(task.category)}',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 trailing: Icon(Icons.arrow_forward,
@@ -268,8 +268,8 @@ class TaskListScreen extends StatelessWidget {
                   isExpanded: true,
                   items: Category.values
                       .map((category) => DropdownMenuItem(
-                          value: category.name,
-                          child: Text(_categoryToString(category.name))))
+                          value: categoryToString(category.name),
+                          child: Text(categoryToString(category.name))))
                       .toList(),
                   onChanged: (value) {
                     _selectedCategory.value = value ?? '';
@@ -320,30 +320,5 @@ class TaskListScreen extends StatelessWidget {
         ],
       ).animate().fadeIn(duration: 300.ms),
     );
-  }
-
-  String _categoryToString(String category) {
-    switch (category) {
-      case 'study':
-        return 'Học tập';
-      case 'lifestyle':
-        return 'Phong cách sống';
-      case 'skill':
-        return 'Kỹ năng';
-      case 'entertainment':
-        return 'Giải trí';
-      default:
-        return category;
-    }
-  }
-
-  Color _getCategoryColor(int index) {
-    const colors = [
-      Colors.blue,
-      Colors.green,
-      Colors.orange,
-      Colors.purple,
-    ];
-    return colors[index % colors.length];
   }
 }

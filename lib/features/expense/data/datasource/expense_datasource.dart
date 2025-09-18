@@ -1,10 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../../core/constants/firebase_config.dart';
-import '../models/expense_model.dart';
+import 'package:injectable/injectable.dart';
+import 'package:task_expense_manager/core/constants/firebase_config.dart';
+import 'package:task_expense_manager/features/expense/data/models/expense_model.dart';
 
-class ExpenseRepository {
+abstract class ExpenseDatasource {
+  Stream<List<ExpenseModel>> getExpenses(String userId);
+  Future<void> addExpense(String userId, ExpenseModel expense);
+  Future<void> updateExpense(String userId, ExpenseModel expense);
+  Future<void> deleteExpense(String userId, String expenseId);
+}
+
+@Injectable(as: ExpenseDatasource)
+class ExpenseDatasourceImpl implements ExpenseDatasource {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  @override
   Stream<List<ExpenseModel>> getExpenses(String userId) {
     return _firestore
         .collection(FirebaseConfig.usersCollection)
@@ -13,9 +23,11 @@ class ExpenseRepository {
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => ExpenseModel.fromJson(doc.data()))
-            .toList());
+            .toList()
+            .cast<ExpenseModel>());
   }
 
+  @override
   Future<void> addExpense(String userId, ExpenseModel expense) async {
     await _firestore
         .collection(FirebaseConfig.usersCollection)
@@ -25,6 +37,7 @@ class ExpenseRepository {
         .set(expense.toJson());
   }
 
+  @override
   Future<void> updateExpense(String userId, ExpenseModel expense) async {
     await _firestore
         .collection(FirebaseConfig.usersCollection)
@@ -34,6 +47,7 @@ class ExpenseRepository {
         .update(expense.toJson());
   }
 
+  @override
   Future<void> deleteExpense(String userId, String expenseId) async {
     await _firestore
         .collection(FirebaseConfig.usersCollection)

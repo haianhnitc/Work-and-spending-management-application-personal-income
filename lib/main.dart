@@ -43,8 +43,8 @@ class App extends StatelessWidget {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  AppBinding().dependencies();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  AppBinding().dependencies();
   // Get.put(FirebaseService());
   await Get.putAsync(() => ThemeService().init());
   configureDependencies();

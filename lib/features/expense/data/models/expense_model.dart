@@ -16,7 +16,7 @@ class ExpenseModel with _$ExpenseModel {
     String? linkedTaskId,
     required Mood mood,
     required Reason reason,
-    @Default(IncomeType.none) IncomeType incomeType, // Thêm loại thu nhập
+    @Default(IncomeType.none) IncomeType incomeType,
   }) = _ExpenseModel;
 
   factory ExpenseModel.fromJson(Map<String, dynamic> json) =>

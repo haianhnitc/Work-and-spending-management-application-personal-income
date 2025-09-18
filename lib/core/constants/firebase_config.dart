@@ -6,6 +6,4 @@ class FirebaseConfig {
   static const String incomesCollection = 'incomes';
   static const String notificationsCollection = 'notifications';
   static const String settingsCollection = 'settings';
-
-  // Thêm các collection khác: expenses, budgets, incomes, v.v.
 }

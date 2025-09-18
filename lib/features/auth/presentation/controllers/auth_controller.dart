@@ -21,7 +21,7 @@ class AuthController extends GetxController {
     } catch (e) {
       print('SignIn error: $e');
       errorMessage.value = e.toString().split(':').last.trim();
-      Get.snackbar('error'.tr, errorMessage.value);
+      // Get.snackbar('error'.tr, errorMessage.value);
     } finally {
       isLoading.value = false;
     }
@@ -38,7 +38,7 @@ class AuthController extends GetxController {
     } catch (e) {
       print('SignUp error: $e');
       errorMessage.value = e.toString().split(':').last.trim();
-      Get.snackbar('error'.tr, errorMessage.value);
+      // Get.snackbar('error'.tr, errorMessage.value);
     } finally {
       isLoading.value = false;
     }

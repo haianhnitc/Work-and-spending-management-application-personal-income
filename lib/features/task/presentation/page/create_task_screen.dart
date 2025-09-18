@@ -257,8 +257,8 @@ class CreateTaskScreen extends StatelessWidget {
               ),
               items: Category.values
                   .map((category) => DropdownMenuItem(
-                        value: category.name,
-                        child: Text(_categoryToString(category.name),
+                        value: categoryToString(category.name),
+                        child: Text(categoryToString(category.name),
                             style: TextStyle(fontSize: isTablet ? 18 : 16)),
                       ))
                   .toList(),
@@ -297,22 +297,19 @@ class CreateTaskScreen extends StatelessWidget {
             DateTime? pickedDate = await showDatePicker(
               context: context,
               initialDate: task?.dueDate ?? DateTime.now(),
-              firstDate: DateTime.now()
-                  .subtract(const Duration(days: 365 * 5)), // 5 năm trước
-              lastDate: DateTime.now()
-                  .add(const Duration(days: 365 * 10)), // 10 năm sau
+              firstDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
+              lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
               builder: (context, child) {
                 return Theme(
                   data: Theme.of(context).copyWith(
                     colorScheme: ColorScheme.light(
-                      primary: Theme.of(context).primaryColor, // Màu chính
-                      onPrimary: Colors.white, // Màu chữ trên màu chính
-                      onSurface: Colors.black87, // Màu chữ trên bề mặt
+                      primary: Theme.of(context).primaryColor,
+                      onPrimary: Colors.white,
+                      onSurface: Colors.black87,
                     ),
                     textButtonTheme: TextButtonThemeData(
                       style: TextButton.styleFrom(
-                        foregroundColor:
-                            Theme.of(context).primaryColor, // Màu nút
+                        foregroundColor: Theme.of(context).primaryColor,
                       ),
                     ),
                   ),
@@ -358,24 +355,5 @@ class CreateTaskScreen extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  String _categoryToString(String category) {
-    switch (category) {
-      case 'study':
-        return 'Học tập';
-      case 'lifestyle':
-        return 'Phong cách sống';
-      case 'skill':
-        return 'Kỹ năng';
-      case 'entertainment':
-        return 'Giải trí';
-      case 'work':
-        return 'Công việc';
-      case 'personal':
-        return 'Cá nhân';
-      default:
-        return category;
-    }
   }
 }

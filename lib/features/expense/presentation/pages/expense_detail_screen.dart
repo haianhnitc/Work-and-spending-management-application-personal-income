@@ -54,16 +54,16 @@ class ExpenseDetailScreen extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
               SizedBox(height: 8),
-              Text('Danh mục: ${_categoryToString(expense.category)}',
+              Text('Danh mục: ${categoryToString(expense.category)}',
                   style: Theme.of(context).textTheme.bodyLarge),
               SizedBox(height: 8),
               Text('Ngày: ${DateFormat('dd/MM/yyyy').format(expense.date)}',
                   style: Theme.of(context).textTheme.bodyLarge),
               SizedBox(height: 8),
-              Text('Tâm trạng: ${_getMoodText(expense.mood)}',
+              Text('Tâm trạng: ${getMoodEmoji(expense.mood, true)}',
                   style: Theme.of(context).textTheme.bodyLarge),
               SizedBox(height: 8),
-              Text('Lý do: ${_reasonToString(expense.reason)}',
+              Text('Lý do: ${reasonToString(expense.reason)}',
                   style: Theme.of(context).textTheme.bodyLarge),
               SizedBox(height: 16),
               Text('Công việc liên kết:',
@@ -97,7 +97,7 @@ class ExpenseDetailScreen extends StatelessWidget {
 
   void _shareExpense(BuildContext context) {
     final text =
-        'Chi tiêu: ${expense.title}\nSố tiền: ${NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ').format(expense.amount.abs())}\nDanh mục: ${_categoryToString(expense.category)}\nNgày: ${DateFormat('dd/MM/yyyy').format(expense.date)}\nTâm trạng: ${_getMoodText(expense.mood)}\nLý do: ${_reasonToString(expense.reason)}';
+        'Chi tiêu: ${expense.title}\nSố tiền: ${NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ').format(expense.amount.abs())}\nDanh mục: ${categoryToString(expense.category)}\nNgày: ${DateFormat('dd/MM/yyyy').format(expense.date)}\nTâm trạng: ${getMoodEmoji(expense.mood, true)}\nLý do: ${reasonToString(expense.reason)}';
     Share.share(text);
   }
 
@@ -123,42 +123,5 @@ class ExpenseDetailScreen extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _getMoodText(Mood mood) {
-    switch (mood) {
-      case Mood.happy:
-        return 'Vui 😊';
-      case Mood.neutral:
-        return 'Bình thường 😐';
-      case Mood.sad:
-        return 'Buồn 😞';
-    }
-  }
-
-  String _reasonToString(Reason reason) {
-    switch (reason) {
-      case Reason.necessary:
-        return 'Cần thiết';
-      case Reason.emotional:
-        return 'Cảm xúc';
-      case Reason.reward:
-        return 'Tự thưởng';
-    }
-  }
-
-  String _categoryToString(String category) {
-    switch (category) {
-      case 'study':
-        return 'Học tập';
-      case 'lifestyle':
-        return 'Phong cách sống';
-      case 'skill':
-        return 'Kỹ năng';
-      case 'entertainment':
-        return 'Giải trí';
-      default:
-        return category;
-    }
   }
 }
