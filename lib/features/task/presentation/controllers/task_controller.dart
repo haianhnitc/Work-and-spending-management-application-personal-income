@@ -96,11 +96,11 @@ class TaskController extends GetxController {
 
   Map<String, int> get categoryTotals {
     final categoryTotals = <String, int>{};
-    
+
     if (selectedCategory.value.isNotEmpty) {
       // Convert display name to category key for comparison
       final categoryKey = displayNameToCategory(selectedCategory.value);
-      
+
       // Có filter category: chỉ hiển thị category đó với data đã filter theo search
       final categoryTasks = tasks.where((task) {
         final matchesCategory = task.category == categoryKey;
@@ -108,7 +108,7 @@ class TaskController extends GetxController {
             task.title.toLowerCase().contains(searchQuery.value.toLowerCase());
         return matchesCategory && matchesSearch;
       });
-      
+
       if (categoryTasks.isNotEmpty) {
         categoryTotals[categoryKey] = categoryTasks.length;
       }
@@ -118,16 +118,18 @@ class TaskController extends GetxController {
         final categoryTasks = tasks.where((task) {
           final matchesCategory = task.category == category.name;
           final matchesSearch = searchQuery.value.isEmpty ||
-              task.title.toLowerCase().contains(searchQuery.value.toLowerCase());
+              task.title
+                  .toLowerCase()
+                  .contains(searchQuery.value.toLowerCase());
           return matchesCategory && matchesSearch;
         });
-        
+
         if (categoryTasks.isNotEmpty) {
           categoryTotals[category.name] = categoryTasks.length;
         }
       }
     }
-    
+
     return categoryTotals;
   }
 

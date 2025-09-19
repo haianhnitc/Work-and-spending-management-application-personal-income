@@ -35,11 +35,11 @@ class ExpenseController extends GetxController {
 
   Map<String, double> get categoryTotals {
     final categoryTotals = <String, double>{};
-    
+
     if (selectedCategory.value.isNotEmpty) {
       // Convert display name to category key for comparison
       final categoryKey = displayNameToCategory(selectedCategory.value);
-      
+
       // Có filter category: chỉ hiển thị category đó với data đã filter theo time
       final categoryExpenses = expenses.where((expense) {
         final matchesCategory = expense.category == categoryKey;
@@ -47,10 +47,10 @@ class ExpenseController extends GetxController {
         final isExpense = expense.amount < 0;
         return matchesCategory && matchesTime && isExpense;
       });
-      
+
       if (categoryExpenses.isNotEmpty) {
-        categoryTotals[categoryKey] = categoryExpenses
-            .fold(0.0, (sum, e) => sum + e.amount.abs());
+        categoryTotals[categoryKey] =
+            categoryExpenses.fold(0.0, (sum, e) => sum + e.amount.abs());
       }
     } else {
       // Không có filter category: hiển thị tất cả categories với data đã filter theo time
@@ -61,14 +61,14 @@ class ExpenseController extends GetxController {
           final isExpense = expense.amount < 0;
           return matchesCategory && matchesTime && isExpense;
         });
-        
+
         if (categoryExpenses.isNotEmpty) {
-          categoryTotals[category.name] = categoryExpenses
-              .fold(0.0, (sum, e) => sum + e.amount.abs());
+          categoryTotals[category.name] =
+              categoryExpenses.fold(0.0, (sum, e) => sum + e.amount.abs());
         }
       }
     }
-    
+
     return categoryTotals;
   }
 

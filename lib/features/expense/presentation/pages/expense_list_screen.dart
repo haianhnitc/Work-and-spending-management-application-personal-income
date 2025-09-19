@@ -121,7 +121,7 @@ class ExpenseListScreen extends StatelessWidget {
           Container(
             height: 24,
             child: Text(
-              controller.selectedCategory.value.isNotEmpty 
+              controller.selectedCategory.value.isNotEmpty
                   ? 'Biểu đồ: ${controller.selectedCategory.value}'
                   : 'Biểu đồ chi tiêu theo danh mục',
               style: Theme.of(context).textTheme.titleSmall,
@@ -144,7 +144,8 @@ class ExpenseListScreen extends StatelessWidget {
     ).animate().fadeIn(duration: 300.ms);
   }
 
-  Widget _buildSelectedChart(BuildContext context, Map<String, double> categoryTotals, bool isTablet) {
+  Widget _buildSelectedChart(
+      BuildContext context, Map<String, double> categoryTotals, bool isTablet) {
     switch (controller.selectedChartType.value) {
       case ChartType.pie:
         return CustomPieChart(

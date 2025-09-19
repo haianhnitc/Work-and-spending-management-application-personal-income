@@ -23,7 +23,8 @@ class TaskListScreen extends StatelessWidget {
           actions: [
             Obx(() => controller.selectedCategory.value.isNotEmpty
                 ? Chip(
-                    label: Text(categoryToString(controller.selectedCategory.value),
+                    label: Text(
+                        categoryToString(controller.selectedCategory.value),
                         style: TextStyle(color: Colors.white)),
                     backgroundColor: Colors.white24,
                     onDeleted: () => controller.clearCategoryFilter(),
@@ -93,7 +94,8 @@ class TaskListScreen extends StatelessWidget {
                 Text('Tổng quan',
                     style: Theme.of(context).textTheme.titleMedium),
                 SizedBox(height: 4),
-                Text('Hoàn thành: ${controller.completedCount}/${controller.totalCount}',
+                Text(
+                    'Hoàn thành: ${controller.completedCount}/${controller.totalCount}',
                     style: Theme.of(context).textTheme.bodyMedium),
               ],
             ),
@@ -123,7 +125,8 @@ class TaskListScreen extends StatelessWidget {
           Container(
             height: 24,
             child: Text(
-              controller.selectedCategory.value.isNotEmpty || controller.searchQuery.value.isNotEmpty
+              controller.selectedCategory.value.isNotEmpty ||
+                      controller.searchQuery.value.isNotEmpty
                   ? 'Biểu đồ: ${controller.selectedCategory.value.isNotEmpty ? controller.selectedCategory.value : 'Kết quả tìm kiếm'}'
                   : 'Biểu đồ công việc theo danh mục',
               style: Theme.of(context).textTheme.titleSmall,
@@ -146,7 +149,8 @@ class TaskListScreen extends StatelessWidget {
     ).animate().fadeIn(duration: 300.ms);
   }
 
-  Widget _buildSelectedChart(BuildContext context, Map<String, int> categoryTotals, bool isTablet) {
+  Widget _buildSelectedChart(
+      BuildContext context, Map<String, int> categoryTotals, bool isTablet) {
     switch (controller.selectedChartType.value) {
       case ChartType.pie:
         return CustomTaskPieChart(
@@ -184,7 +188,8 @@ class TaskListScreen extends StatelessWidget {
                 task.dueDate.month == today.month &&
                 task.dueDate.year == today.year;
           case 'this_week':
-            return task.dueDate.isAfter(startOfWeek.subtract(Duration(days: 1))) &&
+            return task.dueDate
+                    .isAfter(startOfWeek.subtract(Duration(days: 1))) &&
                 task.dueDate.isBefore(endOfWeek.add(Duration(days: 1)));
           case 'overdue':
             return task.dueDate.isBefore(today) && !task.isCompleted;
