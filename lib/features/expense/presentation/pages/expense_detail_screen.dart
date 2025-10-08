@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -9,9 +9,9 @@ import '../controllers/expense_controller.dart';
 import '../../../task/presentation/controllers/task_controller.dart';
 
 class ExpenseDetailScreen extends StatelessWidget {
-  final ExpenseModel expense;
+  final String expenseId;
 
-  ExpenseDetailScreen({required this.expense});
+  ExpenseDetailScreen({required this.expenseId});
 
   @override
   Widget build(BuildContext context) {
@@ -25,83 +25,123 @@ class ExpenseDetailScreen extends StatelessWidget {
             style: Theme.of(context).appBarTheme.titleTextStyle),
         backgroundColor: Theme.of(context).primaryColor,
         actions: [
-          IconButton(
-            icon: Icon(Icons.share, color: Colors.white),
-            onPressed: () => _shareExpense(context),
-          ).animate().scale(duration: 200.ms),
-          IconButton(
-            icon: Icon(Icons.edit, color: Colors.white),
-            onPressed: () =>
-                Get.toNamed('/expense-create', arguments: {'expense': expense}),
-          ).animate().scale(duration: 200.ms),
-          IconButton(
-            icon: Icon(Icons.delete, color: Colors.red),
-            onPressed: () => _showDeleteDialog(context, controller),
-          ).animate().scale(duration: 200.ms),
+          Obx(() {
+            final expense =
+                controller.expenses.firstWhereOrNull((e) => e.id == expenseId);
+            if (expense == null) {
+              return Container();
+            }
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.share, color: Colors.white),
+                  onPressed: () => _shareExpense(context, expense),
+                ).animate().scale(duration: 200.ms),
+                IconButton(
+                  icon: Icon(Icons.edit, color: Colors.white),
+                  onPressed: () => Get.toNamed('/expense-create',
+                      arguments: {'expense': expense}),
+                ).animate().scale(duration: 200.ms),
+                IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: () =>
+                      _showDeleteDialog(context, controller, expense),
+                ).animate().scale(duration: 200.ms),
+              ],
+            );
+          }),
         ],
       ),
       body: Padding(
         padding: EdgeInsets.all(isTablet ? 24 : 16),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(expense.title,
-                  style: Theme.of(context).textTheme.titleLarge),
-              SizedBox(height: 16),
-              Text(
-                'Số tiền: ${NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ').format(expense.amount.abs())} ${expense.amount > 0 ? '(Thu nhập)' : '(Chi tiêu)'}',
-                style: Theme.of(context).textTheme.bodyLarge,
+        child: Obx(() {
+          final expense =
+              controller.expenses.firstWhereOrNull((e) => e.id == expenseId);
+
+          if (expense == null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text('Không tìm thấy chi tiêu',
+                      style: Theme.of(context).textTheme.titleLarge),
+                ],
               ),
-              SizedBox(height: 8),
-              Text('Danh mục: ${categoryToString(expense.category)}',
-                  style: Theme.of(context).textTheme.bodyLarge),
-              SizedBox(height: 8),
-              Text('Ngày: ${DateFormat('dd/MM/yyyy').format(expense.date)}',
-                  style: Theme.of(context).textTheme.bodyLarge),
-              SizedBox(height: 8),
-              Text('Tâm trạng: ${getMoodEmoji(expense.mood, true)}',
-                  style: Theme.of(context).textTheme.bodyLarge),
-              SizedBox(height: 8),
-              Text('Lý do: ${reasonToString(expense.reason)}',
-                  style: Theme.of(context).textTheme.bodyLarge),
-              SizedBox(height: 16),
-              Text('Công việc liên kết:',
-                  style: Theme.of(context).textTheme.titleMedium),
-              Obx(() {
-                final linkedTask = taskController.tasks.firstWhereOrNull(
-                    (task) => task.id == expense.linkedTaskId);
-                if (linkedTask == null) {
-                  return Text('Không có công việc liên kết',
-                      style: Theme.of(context).textTheme.bodyMedium);
-                }
-                return Card(
-                  margin: EdgeInsets.symmetric(vertical: 4),
-                  child: ListTile(
-                    title: Text(linkedTask.title,
-                        style: Theme.of(context).textTheme.bodyLarge),
-                    subtitle: Text(
-                        'Hạn: ${DateFormat('dd/MM/yyyy').format(linkedTask.dueDate)}',
-                        style: Theme.of(context).textTheme.bodyMedium),
-                    onTap: () => Get.toNamed('/task-detail',
-                        arguments: {'task': linkedTask}),
-                  ),
-                );
-              }),
-            ],
-          ),
-        ),
+            );
+          }
+
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(expense.title,
+                    style: Theme.of(context).textTheme.titleLarge),
+                SizedBox(height: 8),
+                Text(
+                  NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ')
+                      .format(expense.amount),
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: expense.incomeType == IncomeType.none
+                          ? Colors.red
+                          : Colors.green),
+                ),
+                SizedBox(height: 8),
+                Text('Loại: ${getIncomeTypeText(expense.incomeType)}',
+                    style: Theme.of(context).textTheme.bodyLarge),
+                SizedBox(height: 8),
+                Text('Danh mục: ${categoryToString(expense.category)}',
+                    style: Theme.of(context).textTheme.bodyLarge),
+                SizedBox(height: 8),
+                Text('Ngày: ${DateFormat('dd/MM/yyyy').format(expense.date)}',
+                    style: Theme.of(context).textTheme.bodyLarge),
+                SizedBox(height: 8),
+                Text('Tâm trạng: ${getMoodEmoji(expense.mood, true)}',
+                    style: Theme.of(context).textTheme.bodyLarge),
+                SizedBox(height: 8),
+                Text('Lý do: ${reasonToString(expense.reason)}',
+                    style: Theme.of(context).textTheme.bodyLarge),
+                SizedBox(height: 16),
+                Text('Công việc liên kết:',
+                    style: Theme.of(context).textTheme.titleMedium),
+                Obx(() {
+                  final linkedTask = taskController.tasks.firstWhereOrNull(
+                      (task) => task.id == expense.linkedTaskId);
+                  if (linkedTask == null) {
+                    return Text('Không có công việc liên kết',
+                        style: Theme.of(context).textTheme.bodyMedium);
+                  }
+                  return Card(
+                    margin: EdgeInsets.symmetric(vertical: 4),
+                    child: ListTile(
+                      title: Text(linkedTask.title,
+                          style: Theme.of(context).textTheme.bodyLarge),
+                      subtitle: Text(
+                          'Hạn: ${DateFormat('dd/MM/yyyy').format(linkedTask.dueDate)}',
+                          style: Theme.of(context).textTheme.bodyMedium),
+                      onTap: () => Get.toNamed('/task-detail',
+                          arguments: {'task': linkedTask}),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          );
+        }),
       ),
     );
   }
 
-  void _shareExpense(BuildContext context) {
+  void _shareExpense(BuildContext context, ExpenseModel expense) {
     final text =
         'Chi tiêu: ${expense.title}\nSố tiền: ${NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ').format(expense.amount.abs())}\nDanh mục: ${categoryToString(expense.category)}\nNgày: ${DateFormat('dd/MM/yyyy').format(expense.date)}\nTâm trạng: ${getMoodEmoji(expense.mood, true)}\nLý do: ${reasonToString(expense.reason)}';
     Share.share(text);
   }
 
-  void _showDeleteDialog(BuildContext context, ExpenseController controller) {
+  void _showDeleteDialog(BuildContext context, ExpenseController controller,
+      ExpenseModel expense) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

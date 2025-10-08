@@ -188,18 +188,6 @@ class BudgetRepositoryImpl implements BudgetRepository {
   }
 
   @override
-  Future<Either<Failure, String>> exportBudgetReport(
-      String userId, String budgetId, String format) async {
-    try {
-      final reportPath =
-          await _remoteDataSource.exportBudgetReport(userId, budgetId, format);
-      return Right(reportPath);
-    } catch (e) {
-      return Left(Failure(e.toString()));
-    }
-  }
-
-  @override
   Future<Either<Failure, void>> syncBudgetWithExpenses(
       String userId, String budgetId) async {
     try {

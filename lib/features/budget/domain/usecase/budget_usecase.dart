@@ -83,11 +83,6 @@ class BudgetUseCase {
     return _repository.duplicateBudget(userId, budgetId, newStartDate);
   }
 
-  Future<Either<Failure, String>> exportBudgetReport(
-      String userId, String budgetId, String format) {
-    return _repository.exportBudgetReport(userId, budgetId, format);
-  }
-
   Future<Either<Failure, void>> syncBudgetWithExpenses(
       String userId, String budgetId) {
     return _repository.syncBudgetWithExpenses(userId, budgetId);

@@ -1,6 +1,10 @@
-import 'dart:ui';
+﻿import 'package:flutter/material.dart';
 
-import 'package:flutter/material.dart';
+enum AppBarType {
+  primary,
+  secondary,
+  modal,
+}
 
 enum Mood { happy, neutral, sad }
 
@@ -46,18 +50,23 @@ String getMoodEmoji(Mood mood, bool istext) {
 
 Color getCategoryColor(int index) {
   const colors = [
-    Color(0xFF4A90E2),
-    Color(0xFF50C878),
-    Color(0xFFF39C12),
-    Color(0xFF9B59B6),
-    Color(0xFFE74C3C),
-    Color(0xFF1ABC9C),
-    Color(0xFFF1C40F),
-    Color(0xFF34495E),
-    Color(0xFFD35400),
-    Color(0xFFC0392B),
-    Color(0xFF2ECC71),
-    Color(0xFF7F8C8D),
+    Color(0xFF2196F3),
+    Color(0xFF4CAF50),
+    Color(0xFFFF9800),
+    Color(0xFFE91E63),
+    Color(0xFF9C27B0),
+    Color(0xFF00BCD4),
+    Color(0xFFFF5722),
+    Color(0xFFFFC107),
+    Color(0xFF607D8B),
+    Color(0xFFF44336),
+    Color(0xFF673AB7),
+    Color(0xFF009688),
+    Color(0xFF795548),
+    Color(0xFF3F51B5),
+    Color(0xFFE1BEE7),
+    Color(0xFF9E9E9E),
+    Color(0xFF8BC34A),
   ];
   return colors[index % colors.length];
 }
@@ -65,19 +74,75 @@ Color getCategoryColor(int index) {
 Color getCategoryColorByName(String categoryName) {
   switch (categoryName) {
     case 'study':
-      return const Color(0xFF4A90E2);
+      return const Color(0xFF2196F3);
     case 'lifestyle':
-      return const Color(0xFF50C878);
+      return const Color(0xFF4CAF50);
     case 'skill':
-      return const Color(0xFFF39C12);
+      return const Color(0xFFFF9800);
     case 'entertainment':
-      return const Color(0xFFE74C3C);
+      return const Color(0xFFE91E63);
     case 'work':
-      return const Color(0xFF8E44AD);
+      return const Color(0xFF9C27B0);
     case 'personal':
-      return const Color(0xFF3498DB);
-    default:
-      return Colors.grey.shade600;
+      return const Color(0xFF00BCD4);
+    case 'food':
+      return const Color(0xFFFF5722);
+    case 'transport':
+      return const Color(0xFFFFC107);
+    case 'shopping':
+      return const Color(0xFF607D8B);
+    case 'health':
+      return const Color(0xFFF44336);
+    case 'education':
+      return const Color(0xFF673AB7);
+    case 'utilities':
+      return const Color(0xFF009688);
+    case 'salary':
+      return const Color(0xFF795548);
+    case 'investment':
+      return const Color(0xFF3F51B5);
+    case 'gift':
+      return const Color(0xFFE1BEE7);
+    case 'other':
+      return const Color(0xFF9E9E9E);
+  }
+  return const Color(0xFF8BC34A);
+}
+
+Color getCategoryColorByEnum(Category category) {
+  switch (category) {
+    case Category.study:
+      return const Color(0xFF2196F3);
+    case Category.lifestyle:
+      return const Color(0xFF4CAF50);
+    case Category.skill:
+      return const Color(0xFFFF9800);
+    case Category.entertainment:
+      return const Color(0xFFE91E63);
+    case Category.work:
+      return const Color(0xFF9C27B0);
+    case Category.personal:
+      return const Color(0xFF00BCD4);
+    case Category.food:
+      return const Color(0xFFFF5722);
+    case Category.transport:
+      return const Color(0xFFFFC107);
+    case Category.shopping:
+      return const Color(0xFF607D8B);
+    case Category.health:
+      return const Color(0xFFF44336);
+    case Category.education:
+      return const Color(0xFF673AB7);
+    case Category.utilities:
+      return const Color(0xFF009688);
+    case Category.salary:
+      return const Color(0xFF795548);
+    case Category.investment:
+      return const Color(0xFF3F51B5);
+    case Category.gift:
+      return const Color(0xFFE1BEE7);
+    case Category.other:
+      return const Color(0xFF9E9E9E);
   }
 }
 
@@ -183,11 +248,11 @@ String categoryToString(dynamic category) {
 String chartTypeToString(ChartType chartType) {
   switch (chartType) {
     case ChartType.pie:
-      return 'Biểu đồ tròn';
+      return 'Tròn';
     case ChartType.bar:
-      return 'Biểu đồ cột';
+      return 'Cột';
     case ChartType.line:
-      return 'Biểu đồ đường';
+      return 'Đường';
   }
 }
 
@@ -237,6 +302,77 @@ String displayNameToCategory(String displayName) {
     case 'Khác':
       return 'other';
     default:
-      return displayName; // If it's already a category key, return as is
+      return 'other';
+  }
+}
+
+IconData getCategoryIcon(dynamic category) {
+  switch (category) {
+    case Category.study:
+    case 'study':
+      return Icons.school_rounded;
+    case Category.lifestyle:
+    case 'lifestyle':
+      return Icons.style_rounded;
+    case Category.skill:
+    case 'skill':
+      return Icons.build_rounded;
+    case Category.entertainment:
+    case 'entertainment':
+      return Icons.celebration_rounded;
+    case Category.work:
+    case 'work':
+      return Icons.work_rounded;
+    case Category.personal:
+    case 'personal':
+      return Icons.person_rounded;
+    case Category.food:
+    case 'food':
+      return Icons.restaurant_rounded;
+    case Category.transport:
+    case 'transport':
+      return Icons.directions_car_rounded;
+    case Category.shopping:
+    case 'shopping':
+      return Icons.shopping_bag_rounded;
+    case Category.health:
+    case 'health':
+      return Icons.health_and_safety_rounded;
+    case Category.education:
+    case 'education':
+      return Icons.menu_book_rounded;
+    case Category.utilities:
+    case 'utilities':
+      return Icons.electrical_services_rounded;
+    case Category.salary:
+    case 'salary':
+      return Icons.payments_rounded;
+    case Category.investment:
+    case 'investment':
+      return Icons.trending_up_rounded;
+    case Category.gift:
+    case 'gift':
+      return Icons.card_giftcard_rounded;
+    case Category.other:
+    case 'other':
+    default:
+      return Icons.more_horiz_rounded;
+  }
+}
+
+String getPeriodDisplayName(String period) {
+  switch (period) {
+    case 'daily':
+      return 'Hằng ngày';
+    case 'weekly':
+      return 'Hằng tuần';
+    case 'monthly':
+      return 'Hằng tháng';
+    case 'yearly':
+      return 'Hằng năm';
+    case 'custom':
+      return 'Tùy chỉnh';
+    default:
+      return period;
   }
 }

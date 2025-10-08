@@ -1,8 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:task_expense_manager/features/auth/presentation/controllers/auth_controller.dart';
 import '../controllers/budget_controller.dart';
 import '../../data/models/budget_model.dart';
+import '../../../../core/constants/app_enums.dart';
 
 class CreateBudgetScreen extends StatefulWidget {
   @override
@@ -11,6 +13,7 @@ class CreateBudgetScreen extends StatefulWidget {
 
 class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
   final BudgetController _budgetController = Get.find<BudgetController>();
+  final AuthController authController = Get.find<AuthController>();
   final _formKey = GlobalKey<FormState>();
 
   final _nameController = TextEditingController();
@@ -347,7 +350,7 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
               items: _categories.map((category) {
                 return DropdownMenuItem(
                   value: category,
-                  child: Text(_getCategoryDisplayName(category)),
+                  child: Text(categoryToString(category)),
                 );
               }).toList(),
               onChanged: (value) {
@@ -395,7 +398,7 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
               items: _periods.map((period) {
                 return DropdownMenuItem(
                   value: period,
-                  child: Text(_getPeriodDisplayName(period)),
+                  child: Text(getPeriodDisplayName(period)),
                 );
               }).toList(),
               onChanged: (value) {
@@ -577,7 +580,7 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
 
     final budget = BudgetModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
-      userId: 'user_id',
+      userId: authController.getCurrentUserId(),
       name: _nameController.text,
       category: _selectedCategory,
       amount: double.parse(_amountController.text),
@@ -600,49 +603,5 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
       _endDate,
     );
     Get.back();
-  }
-
-  String _getCategoryDisplayName(String category) {
-    switch (category) {
-      case 'general':
-        return 'Tổng quát';
-      case 'food':
-        return 'Thực phẩm';
-      case 'transport':
-        return 'Giao thông';
-      case 'shopping':
-        return 'Mua sắm';
-      case 'entertainment':
-        return 'Giải trí';
-      case 'utilities':
-        return 'Tiện ích';
-      case 'health':
-        return 'Sức khỏe';
-      case 'education':
-        return 'Giáo dục';
-      case 'travel':
-        return 'Du lịch';
-      case 'other':
-        return 'Khác';
-      default:
-        return category;
-    }
-  }
-
-  String _getPeriodDisplayName(String period) {
-    switch (period) {
-      case 'daily':
-        return 'Hàng ngày';
-      case 'weekly':
-        return 'Hàng tuần';
-      case 'monthly':
-        return 'Hàng tháng';
-      case 'yearly':
-        return 'Hàng năm';
-      case 'custom':
-        return 'Tùy chỉnh';
-      default:
-        return period;
-    }
   }
 }

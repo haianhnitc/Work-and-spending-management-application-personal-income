@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:task_expense_manager/features/ai/ai_controller.dart';
+import 'package:task_expense_manager/features/ai/ai_chat_screen.dart';
 import '../../../core/services/theme_service.dart';
 
 class AIInsightsScreen extends StatelessWidget {
@@ -203,32 +204,39 @@ class AIInsightsScreen extends StatelessWidget {
           SizedBox(height: 24),
           Obx(() => AnimatedSwitcher(
                 duration: Duration(milliseconds: 600),
-                child: Container(
-                  key: ValueKey(controller.smartSuggestions.value),
-                  width: double.infinity,
-                  constraints: BoxConstraints(
-                    minHeight: 100,
-                    maxHeight: isTablet ? 200 : 150,
-                  ),
-                  padding: EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    gradient: _buildContentGradient(isDark),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: _getContentBorderColor(isDark),
-                      width: 1,
+                child: InkWell(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    controller.generateSmartSuggestions();
+                  },
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    key: ValueKey(controller.smartSuggestions.value),
+                    width: double.infinity,
+                    constraints: BoxConstraints(
+                      minHeight: 100,
+                      maxHeight: isTablet ? 200 : 150,
                     ),
-                  ),
-                  child: SingleChildScrollView(
-                    child: Text(
-                      controller.smartSuggestions.value.isEmpty
-                          ? controller.getContextualSuggestion()
-                          : controller.smartSuggestions.value,
-                      style: TextStyle(
-                        fontSize: isTablet ? 16 : 15,
-                        height: 1.6,
-                        color: _getContentTextColor(isDark),
-                        fontWeight: FontWeight.w500,
+                    padding: EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: _buildContentGradient(isDark),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: _getContentBorderColor(isDark),
+                        width: 1,
+                      ),
+                    ),
+                    child: SingleChildScrollView(
+                      child: Text(
+                        controller.smartSuggestions.value.isEmpty
+                            ? controller.getContextualSuggestion()
+                            : controller.smartSuggestions.value,
+                        style: TextStyle(
+                          fontSize: isTablet ? 16 : 15,
+                          height: 1.6,
+                          color: _getContentTextColor(isDark),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),
@@ -509,165 +517,173 @@ class AIInsightsScreen extends StatelessWidget {
           ),
         ),
         SizedBox(height: 20),
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            gradient: _buildTrendingGradient(isDark),
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: _getAIShadowColor(isDark),
-                blurRadius: 25,
-                offset: Offset(0, 12),
-                spreadRadius: 0,
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: EdgeInsets.all(isTablet ? 32 : 28),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(isDark ? 0.15 : 0.2),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(isDark ? 0.2 : 0.3),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Obx(() => AnimatedSwitcher(
-                            duration: Duration(milliseconds: 300),
-                            child: controller.isPredictiveLoading.value
-                                ? SizedBox(
-                                    width: 28,
-                                    height: 28,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 3,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white),
-                                    ),
-                                  )
-                                : Icon(
-                                    Icons.trending_up,
-                                    color: Colors.white,
-                                    size: 28,
-                                  ),
-                          )),
-                    ),
-                    SizedBox(width: 20),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Phân tích xu hướng',
-                            style: TextStyle(
-                              fontSize: isTablet ? 22 : 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Dự đoán thông minh cho tương lai',
-                            style: TextStyle(
-                              fontSize: isTablet ? 14 : 13,
-                              color: Colors.white.withOpacity(0.9),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+        InkWell(
+          onTap: () {
+            HapticFeedback.mediumImpact();
+            controller.getPredictiveAnalysis();
+          },
+          borderRadius: BorderRadius.circular(28),
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: _buildTrendingGradient(isDark),
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: _getAIShadowColor(isDark),
+                  blurRadius: 25,
+                  offset: Offset(0, 12),
+                  spreadRadius: 0,
                 ),
-                SizedBox(height: 24),
-                Container(
-                  width: double.infinity,
-                  constraints: BoxConstraints(
-                    minHeight: isTablet ? 140 : 120,
-                    maxHeight: isTablet ? 200 : 160,
-                  ),
-                  padding: EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(isDark ? 0.08 : 0.12),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(isDark ? 0.15 : 0.25),
-                      width: 1,
-                    ),
-                  ),
-                  child: Obx(() {
-                    if (controller.isPredictiveLoading.value) {
-                      return Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'AI đang phân tích xu hướng...',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: isTablet ? 16 : 15,
-                              fontWeight: FontWeight.w600,
-                            ),
+              ],
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(isTablet ? 32 : 28),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(isDark ? 0.15 : 0.2),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(isDark ? 0.2 : 0.3),
+                            width: 1.5,
                           ),
-                          SizedBox(height: 16),
-                          LinearProgressIndicator(
-                            backgroundColor: Colors.white.withOpacity(0.3),
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
-                            minHeight: 3,
-                          ),
-                        ],
-                      );
-                    }
-
-                    final analysis = controller.predictiveData['analysis'];
-                    if (analysis == null || analysis.isEmpty) {
-                      return Center(
+                        ),
+                        child: Obx(() => AnimatedSwitcher(
+                              duration: Duration(milliseconds: 300),
+                              child: controller.isPredictiveLoading.value
+                                  ? SizedBox(
+                                      width: 28,
+                                      height: 28,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 3,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                Colors.white),
+                                      ),
+                                    )
+                                  : Icon(
+                                      Icons.trending_up,
+                                      color: Colors.white,
+                                      size: 28,
+                                    ),
+                            )),
+                      ),
+                      SizedBox(width: 20),
+                      Expanded(
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              Icons.analytics_outlined,
-                              color: Colors.white.withOpacity(0.7),
-                              size: 36,
-                            ),
-                            SizedBox(height: 12),
                             Text(
-                              'Phân tích xu hướng để có cái nhìn sâu sắc hơn về dữ liệu của bạn',
-                              textAlign: TextAlign.center,
+                              'Phân tích xu hướng',
                               style: TextStyle(
-                                fontSize: isTablet ? 15 : 14,
+                                fontSize: isTablet ? 22 : 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Dự đoán thông minh cho tương lai',
+                              style: TextStyle(
+                                fontSize: isTablet ? 14 : 13,
                                 color: Colors.white.withOpacity(0.9),
                                 fontWeight: FontWeight.w500,
-                                height: 1.4,
                               ),
                             ),
                           ],
                         ),
-                      );
-                    }
-
-                    return SingleChildScrollView(
-                      child: Text(
-                        analysis,
-                        style: TextStyle(
-                          fontSize: isTablet ? 15 : 14,
-                          color: Colors.white,
-                          height: 1.6,
-                          fontWeight: FontWeight.w500,
-                        ),
                       ),
-                    );
-                  }),
-                ),
-              ],
+                    ],
+                  ),
+                  SizedBox(height: 24),
+                  Container(
+                    width: double.infinity,
+                    constraints: BoxConstraints(
+                      minHeight: isTablet ? 140 : 120,
+                      maxHeight: isTablet ? 200 : 160,
+                    ),
+                    padding: EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(isDark ? 0.08 : 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(isDark ? 0.15 : 0.25),
+                        width: 1,
+                      ),
+                    ),
+                    child: Obx(() {
+                      if (controller.isPredictiveLoading.value) {
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'AI đang phân tích xu hướng...',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: isTablet ? 16 : 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(height: 16),
+                            LinearProgressIndicator(
+                              backgroundColor: Colors.white.withOpacity(0.3),
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                              minHeight: 3,
+                            ),
+                          ],
+                        );
+                      }
+
+                      final analysis = controller.predictiveData['analysis'];
+                      if (analysis == null || analysis.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.analytics_outlined,
+                                color: Colors.white.withOpacity(0.7),
+                                size: 36,
+                              ),
+                              SizedBox(height: 12),
+                              Text(
+                                'Phân tích xu hướng để có cái nhìn sâu sắc hơn về dữ liệu của bạn',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: isTablet ? 15 : 14,
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontWeight: FontWeight.w500,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      return SingleChildScrollView(
+                        child: Text(
+                          analysis,
+                          style: TextStyle(
+                            fontSize: isTablet ? 15 : 14,
+                            color: Colors.white,
+                            height: 1.6,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -686,32 +702,26 @@ class AIInsightsScreen extends StatelessWidget {
                   controller.isTaskLoading.value ||
                   controller.isPredictiveLoading.value
               ? null
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    FloatingActionButton(
-                      onPressed: () {
-                        HapticFeedback.mediumImpact();
-                        controller.getPredictiveAnalysis();
-                      },
-                      backgroundColor:
-                          isDark ? Color(0xFF533483) : Color(0xFF667eea),
-                      elevation: 12,
-                      child: Icon(Icons.trending_up, color: Colors.white),
-                    ).animate().scale(duration: 400.ms, delay: 600.ms),
-                    SizedBox(height: 16),
-                    FloatingActionButton(
-                      onPressed: () {
-                        HapticFeedback.lightImpact();
-                        controller.generateSmartSuggestions();
-                      },
-                      backgroundColor:
-                          isDark ? Color(0xFF0f3460) : Color(0xFF764ba2),
-                      elevation: 8,
-                      child: Icon(Icons.refresh, color: Colors.white),
-                    ).animate().scale(duration: 400.ms, delay: 700.ms),
-                  ],
-                ),
+              : FloatingActionButton.extended(
+                  onPressed: () {
+                    HapticFeedback.mediumImpact();
+                    Get.to(() => AIChatScreen());
+                  },
+                  backgroundColor: Color(0xFF667eea),
+                  elevation: 12,
+                  icon: Icon(Icons.chat_bubble_outline, color: Colors.white),
+                  label: Text(
+                    'Chat với AI',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                )
+                  .animate()
+                  .scale(duration: 400.ms, delay: 500.ms)
+                  .shimmer(delay: 1000.ms, duration: 2000.ms),
         ));
   }
 

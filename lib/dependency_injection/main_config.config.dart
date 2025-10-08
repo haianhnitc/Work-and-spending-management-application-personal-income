@@ -56,7 +56,7 @@ extension GetItInjectableX on _i174.GetIt {
     final registerModule = _$RegisterModule();
     gh.singleton<_i974.FirebaseFirestore>(() => registerModule.firestore);
     gh.factory<_i302.ExpenseDatasource>(() => _i302.ExpenseDatasourceImpl());
-    gh.lazySingleton<_i626.BudgetRemoteDataSource>(
+    gh.factory<_i626.BudgetRemoteDataSource>(
         () => _i626.BudgetRemoteDataSourceImpl());
     gh.factory<_i1041.TaskDataSource>(
         () => _i1041.TaskDatasourceImpl(gh<_i974.FirebaseFirestore>()));

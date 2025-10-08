@@ -54,10 +54,6 @@ abstract class BudgetRepository {
   Future<Either<Failure, BudgetModel>> duplicateBudget(
       String userId, String budgetId, DateTime newStartDate);
 
-  // Xuất báo cáo ngân sách
-  Future<Either<Failure, String>> exportBudgetReport(
-      String userId, String budgetId, String format);
-
   // Đồng bộ ngân sách với chi tiêu
   Future<Either<Failure, void>> syncBudgetWithExpenses(
       String userId, String budgetId);

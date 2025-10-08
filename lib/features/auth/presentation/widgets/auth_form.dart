@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
+import '../../../../routes/app_routes.dart';
 
 class AuthForm extends StatefulWidget {
   final bool isLogin;
   final bool isLoading;
   final String? errorMessage;
-  final Function(String email, String password) onSubmit;
+  final Function(String email, String password)? onSubmit;
+  final Function(String name, String email, String password)? onSubmitWithName;
   final VoidCallback onSwitch;
 
   const AuthForm({
@@ -14,7 +16,8 @@ class AuthForm extends StatefulWidget {
     required this.isLogin,
     required this.isLoading,
     this.errorMessage,
-    required this.onSubmit,
+    this.onSubmit,
+    this.onSubmitWithName,
     required this.onSwitch,
   }) : super(key: key);
 
@@ -24,6 +27,7 @@ class AuthForm extends StatefulWidget {
 
 class _AuthFormState extends State<AuthForm> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -32,6 +36,7 @@ class _AuthFormState extends State<AuthForm> {
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -40,7 +45,13 @@ class _AuthFormState extends State<AuthForm> {
 
   void _handleSubmit() {
     if (_formKey.currentState!.validate()) {
-      widget.onSubmit(_emailController.text.trim(), _passwordController.text);
+      if (widget.isLogin) {
+        widget.onSubmit
+            ?.call(_emailController.text.trim(), _passwordController.text);
+      } else {
+        widget.onSubmitWithName?.call(_nameController.text.trim(),
+            _emailController.text.trim(), _passwordController.text);
+      }
     }
   }
 
@@ -52,6 +63,26 @@ class _AuthFormState extends State<AuthForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (!widget.isLogin) ...[
+            _buildInputField(
+              controller: _nameController,
+              label: 'Họ và tên',
+              hint: 'Nhập họ và tên của bạn',
+              icon: Icons.person_rounded,
+              keyboardType: TextInputType.name,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Vui lòng nhập họ và tên';
+                }
+                if (value.trim().length < 2) {
+                  return 'Tên phải có ít nhất 2 ký tự';
+                }
+                return null;
+              },
+              isTablet: isTablet,
+            ),
+            SizedBox(height: isTablet ? 24 : 20),
+          ],
           _buildInputField(
             controller: _emailController,
             label: 'Email',
@@ -108,24 +139,6 @@ class _AuthFormState extends State<AuthForm> {
               isTablet: isTablet,
             ),
           ],
-          if (widget.isLogin) ...[
-            SizedBox(height: isTablet ? 16 : 12),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () => Get.snackbar(
-                    'Thông báo', 'Tính năng quên mật khẩu đang phát triển!'),
-                child: Text(
-                  'Quên mật khẩu?',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                        fontSize: isTablet ? 16 : 14,
-                      ),
-                ),
-              ),
-            ),
-          ],
           SizedBox(height: isTablet ? 32 : 24),
           if (widget.errorMessage != null && widget.errorMessage!.isNotEmpty)
             Container(
@@ -147,7 +160,7 @@ class _AuthFormState extends State<AuthForm> {
                   SizedBox(width: isTablet ? 12 : 8),
                   Expanded(
                     child: Text(
-                      'Tài khoản hoặc mật khẩu không chính xác. Vui lòng thử lại.',
+                      widget.errorMessage!,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Theme.of(context).colorScheme.error,
                             fontWeight: FontWeight.w500,
@@ -202,6 +215,21 @@ class _AuthFormState extends State<AuthForm> {
                 duration: 150.ms,
                 curve: Curves.easeOutCubic,
               ),
+          if (widget.isLogin) ...[
+            SizedBox(height: isTablet ? 16 : 12),
+            TextButton(
+              onPressed: () => Get.toNamed(AppRoutes.forgotPassword),
+              child: Text(
+                'Quên mật khẩu?',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                      fontSize: isTablet ? 15 : 13,
+                      decoration: TextDecoration.underline,
+                    ),
+              ),
+            ),
+          ],
           SizedBox(height: isTablet ? 24 : 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,

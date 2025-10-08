@@ -15,13 +15,23 @@ class AuthUseCase {
     return await _authRepository.signUp(email, password);
   }
 
+  Future<UserModel> signUpWithName(
+      String name, String email, String password) async {
+    return await _authRepository.signUpWithName(name, email, password);
+  }
+
   Future<void> signOut() async {
     await _authRepository.signOut();
   }
 
-  // Future<void> sendPasswordResetEmail(String email) async {
-  //   await _authRepository.sendPasswordResetEmail(email);
-  // }
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _authRepository.sendPasswordResetEmail(email);
+  }
+
+  Future<void> changePassword(
+      String currentPassword, String newPassword) async {
+    await _authRepository.changePassword(currentPassword, newPassword);
+  }
 
   String? getCurrentUserId() {
     return _authRepository.getCurrentUser()?.uid;

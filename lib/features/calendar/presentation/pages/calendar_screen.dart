@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:task_expense_manager/core/constants/app_enums.dart';
+import 'package:task_expense_manager/core/widgets/common_app_bar.dart';
 import 'package:task_expense_manager/features/calendar/presentation/controllers/calendar_controller.dart';
 import '../../../expense/data/models/expense_model.dart';
 import '../../../expense/presentation/controllers/expense_controller.dart';
@@ -21,224 +22,269 @@ class CalendarScreen extends StatelessWidget {
     final isTablet = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
-      appBar: AppBar(
-        title:
-            Text('Lịch', style: Theme.of(context).appBarTheme.titleTextStyle),
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+      appBar: CommonAppBar(
+        title: 'Lịch',
+        type: AppBarType.primary,
         actions: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: isTablet ? 16 : 8),
-            child: ToggleButtons(
-              isSelected: [
-                calendarController.showTasks.value,
-                calendarController.showExpenses.value
-              ],
-              onPressed: (index) {
-                if (index == 0) {
-                  calendarController.showTasks.toggle();
-                } else {
-                  calendarController.showExpenses.toggle();
-                }
-              },
-              borderRadius: BorderRadius.circular(10),
-              selectedColor: Theme.of(context).colorScheme.primary,
-              fillColor:
-                  Theme.of(context).colorScheme.secondary.withOpacity(0.2),
-              borderColor:
-                  Theme.of(context).colorScheme.primary.withOpacity(0.5),
-              selectedBorderColor: Theme.of(context).colorScheme.primary,
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: isTablet ? 12 : 8),
-                  child: Row(
-                    children: [
-                      Icon(Icons.task_alt_rounded, size: isTablet ? 24 : 20),
-                      SizedBox(width: isTablet ? 8 : 4),
-                      Text('Công việc',
-                          style: TextStyle(fontSize: isTablet ? 16 : 14)),
-                    ],
-                  ),
+          Obx(() => IconButton(
+                icon: Icon(
+                  Icons.task_alt_rounded,
+                  color: calendarController.showTasks.value
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.5),
                 ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: isTablet ? 12 : 8),
-                  child: Row(
-                    children: [
-                      Icon(Icons.payments_rounded, size: isTablet ? 24 : 20),
-                      SizedBox(width: isTablet ? 8 : 4),
-                      Text('Chi tiêu',
-                          style: TextStyle(fontSize: isTablet ? 16 : 14)),
-                    ],
-                  ),
+                onPressed: () => calendarController.showTasks.toggle(),
+                tooltip: calendarController.showTasks.value
+                    ? 'Ẩn công việc'
+                    : 'Hiển thị công việc',
+              )),
+          Obx(() => IconButton(
+                icon: Icon(
+                  Icons.payments_rounded,
+                  color: calendarController.showExpenses.value
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.5),
                 ),
-              ],
-            ).animate().fadeIn(duration: 300.ms, delay: 100.ms),
-          ),
+                onPressed: () => calendarController.showExpenses.toggle(),
+                tooltip: calendarController.showExpenses.value
+                    ? 'Ẩn chi tiêu'
+                    : 'Hiển thị chi tiêu',
+              )),
         ],
       ),
-      body: Obx(() {
-        final allEvents =
-            _buildEvents(taskController.tasks, expenseController.expenses);
-        return Column(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: Theme.of(context).brightness == Brightness.dark
+                ? [
+                    Theme.of(context).colorScheme.background,
+                    Theme.of(context).colorScheme.surface,
+                  ]
+                : [
+                    Color(0xFFF8F9FA),
+                    Colors.white,
+                  ],
+          ),
+        ),
+        child: Column(
           children: [
             Container(
-              margin: EdgeInsets.all(isTablet ? 20 : 12),
+              margin: EdgeInsets.fromLTRB(16, 16, 16, 8),
               decoration: BoxDecoration(
-                color: Theme.of(context).cardTheme.color,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    spreadRadius: 2,
-                    blurRadius: 10,
+                    color: Theme.of(context).shadowColor.withOpacity(0.08),
+                    spreadRadius: 0,
+                    blurRadius: 20,
                     offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              child: TableCalendar(
-                firstDay: DateTime.utc(2020, 1, 1),
-                lastDay: DateTime.utc(2030, 12, 31),
-                focusedDay: calendarController.focusedDay.value,
-                calendarFormat: calendarController.calendarFormat.value,
-                selectedDayPredicate: (day) {
-                  return isSameDay(calendarController.selectedDay.value, day);
-                },
-                onDaySelected: (selectedDay, focusedDay) {
-                  calendarController.selectedDay.value = selectedDay;
-                  calendarController.focusedDay.value = focusedDay;
-                },
-                onPageChanged: (focusedDay) {
-                  calendarController.focusedDay.value = focusedDay;
-                },
-                eventLoader: (day) {
-                  List<dynamic> events =
-                      allEvents[DateTime(day.year, day.month, day.day)] ?? [];
-                  if (!calendarController.showTasks.value) {
-                    events = events.where((e) => e is! TaskModel).toList();
-                  }
-                  if (!calendarController.showExpenses.value) {
-                    events = events.where((e) => e is! ExpenseModel).toList();
-                  }
-                  return events;
-                },
-                calendarBuilders: CalendarBuilders(
-                  markerBuilder: (context, date, events) {
-                    if (events.isNotEmpty) {
-                      return Positioned(
-                        right: 1,
-                        bottom: 1,
-                        child:
-                            _buildEventsMarker(date, events, isTablet, context),
-                      );
-                    }
-                    return null;
-                  },
-                  selectedBuilder: (context, date, focusedDay) {
-                    return Container(
-                      margin: EdgeInsets.all(isTablet ? 6 : 4),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        '${date.day}',
-                        style: TextStyle(
-                            color: Colors.white, fontSize: isTablet ? 20 : 16),
-                      ),
-                    );
-                  },
-                  todayBuilder: (context, date, focusedDay) {
-                    return Container(
-                      margin: EdgeInsets.all(isTablet ? 6 : 4),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withOpacity(0.2),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                            color: Theme.of(context).colorScheme.primary,
-                            width: 1.5),
-                      ),
-                      child: Text(
-                        '${date.day}',
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: isTablet ? 20 : 16),
-                      ),
-                    );
-                  },
-                  dowBuilder: (context, day) {
-                    final text = DateFormat.E('vi_VN').format(day);
-                    return Center(
-                      child: Text(
-                        text,
-                        style: TextStyle(
-                            color: day.weekday == DateTime.sunday
-                                ? Colors.redAccent
-                                : Theme.of(context).textTheme.bodyMedium?.color,
-                            fontWeight: FontWeight.w600,
-                            fontSize: isTablet ? 15 : 13),
-                      ),
-                    );
-                  },
-                ),
-                headerStyle: HeaderStyle(
-                  formatButtonVisible: false,
-                  titleCentered: true,
-                  titleTextStyle: Theme.of(context)
-                      .textTheme
-                      .titleMedium!
-                      .copyWith(
-                          fontSize: isTablet ? 22 : 18,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSurface),
-                  leftChevronIcon: Icon(Icons.chevron_left_rounded,
-                      color: Theme.of(context).colorScheme.onSurface,
-                      size: isTablet ? 30 : 24),
-                  rightChevronIcon: Icon(Icons.chevron_right_rounded,
-                      color: Theme.of(context).colorScheme.onSurface,
-                      size: isTablet ? 30 : 24),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardTheme.color,
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(20)),
-                  ),
-                  headerPadding:
-                      EdgeInsets.symmetric(vertical: isTablet ? 12 : 8),
-                ),
-                daysOfWeekStyle: DaysOfWeekStyle(
-                  weekdayStyle: Theme.of(context)
-                      .textTheme
-                      .bodyMedium!
-                      .copyWith(
+              child: Obx(() => TableCalendar(
+                    key: ValueKey(
+                        '${calendarController.showTasks.value}_${calendarController.showExpenses.value}'),
+                    firstDay: DateTime.utc(2020, 1, 1),
+                    lastDay: DateTime.utc(2030, 12, 31),
+                    focusedDay: calendarController.focusedDay.value,
+                    calendarFormat: calendarController.calendarFormat.value,
+                    selectedDayPredicate: (day) {
+                      return isSameDay(
+                          calendarController.selectedDay.value, day);
+                    },
+                    onDaySelected: (selectedDay, focusedDay) {
+                      calendarController.selectedDay.value = selectedDay;
+                      calendarController.focusedDay.value = focusedDay;
+                    },
+                    onPageChanged: (focusedDay) {
+                      calendarController.focusedDay.value = focusedDay;
+                    },
+                    eventLoader: (day) {
+                      final allEvents = _buildEvents(
+                          taskController.tasks, expenseController.expenses);
+                      List<dynamic> events =
+                          allEvents[DateTime(day.year, day.month, day.day)] ??
+                              [];
+
+                      if (!calendarController.showTasks.value) {
+                        events = events.where((e) => e is! TaskModel).toList();
+                      }
+                      if (!calendarController.showExpenses.value) {
+                        events =
+                            events.where((e) => e is! ExpenseModel).toList();
+                      }
+                      return events;
+                    },
+                    calendarBuilders: CalendarBuilders(
+                      markerBuilder: (context, date, events) {
+                        if (events.isNotEmpty) {
+                          return Positioned(
+                            right: 1,
+                            bottom: 1,
+                            child: _buildEventsMarker(
+                                date, events, isTablet, context),
+                          );
+                        }
+                        return null;
+                      },
+                      selectedBuilder: (context, date, focusedDay) {
+                        return Container(
+                          margin: EdgeInsets.all(6),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Theme.of(context).colorScheme.primary,
+                                Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withOpacity(0.8),
+                              ],
+                            ),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withOpacity(0.3),
+                                spreadRadius: 0,
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            '${date.day}',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600),
+                          ),
+                        );
+                      },
+                      todayBuilder: (context, date, focusedDay) {
+                        return Container(
+                          margin: EdgeInsets.all(6),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .secondary
+                                .withOpacity(0.2),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                                color: Theme.of(context).colorScheme.secondary,
+                                width: 2),
+                          ),
+                          child: Text(
+                            '${date.day}',
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.secondary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16),
+                          ),
+                        );
+                      },
+                      dowBuilder: (context, day) {
+                        final text = DateFormat.E('vi_VN').format(day);
+                        return Center(
+                          child: Text(
+                            text,
+                            style: TextStyle(
+                                color: day.weekday == DateTime.sunday
+                                    ? Theme.of(context).colorScheme.error
+                                    : Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withOpacity(0.7),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13),
+                          ),
+                        );
+                      },
+                    ),
+                    headerStyle: HeaderStyle(
+                      formatButtonVisible: false,
+                      titleCentered: true,
+                      titleTextStyle: Theme.of(context)
+                          .textTheme
+                          .titleMedium!
+                          .copyWith(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface),
+                      leftChevronIcon: Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
                           color: Theme.of(context)
                               .colorScheme
-                              .onSurface
-                              .withOpacity(0.7),
-                          fontSize: isTablet ? 16 : 14),
-                  weekendStyle: Theme.of(context)
-                      .textTheme
-                      .bodyMedium!
-                      .copyWith(
-                          color: Colors.red.shade400,
-                          fontSize: isTablet ? 16 : 14),
-                ),
-                rowHeight: isTablet ? 60 : 45,
-                availableGestures: AvailableGestures.horizontalSwipe,
-              ).animate().fadeIn(duration: 400.ms, delay: 200.ms),
+                              .primary
+                              .withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(Icons.chevron_left_rounded,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 20),
+                      ),
+                      rightChevronIcon: Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(Icons.chevron_right_rounded,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 20),
+                      ),
+                      headerPadding: EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    daysOfWeekStyle: DaysOfWeekStyle(
+                      weekdayStyle: Theme.of(context)
+                          .textTheme
+                          .bodyMedium!
+                          .copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withOpacity(0.7),
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14),
+                      weekendStyle: Theme.of(context)
+                          .textTheme
+                          .bodyMedium!
+                          .copyWith(
+                              color: Theme.of(context).colorScheme.error,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14),
+                    ),
+                    rowHeight: 50,
+                    availableGestures: AvailableGestures.horizontalSwipe,
+                  ).animate().fadeIn(duration: 400.ms, delay: 200.ms)),
             ),
             SizedBox(height: isTablet ? 24 : 16),
             Expanded(
-              child: _buildEventList(context, allEvents,
-                  calendarController.selectedDay.value, isTablet),
+              child: Obx(() {
+                final allEvents = _buildEvents(
+                    taskController.tasks, expenseController.expenses);
+                return _buildEventList(context, allEvents,
+                    calendarController.selectedDay.value, isTablet);
+              }),
             ),
           ],
-        );
-      }),
+        ),
+      ),
       floatingActionButton: FloatingActionButton(
+        heroTag: "calendar_fab",
         onPressed: () {
           Get.bottomSheet(
             Container(
@@ -315,17 +361,6 @@ class CalendarScreen extends StatelessWidget {
       BuildContext context) {
     if (events.isEmpty) return const SizedBox.shrink();
 
-    final filteredEvents = events.where((event) {
-      if (event is TaskModel) {
-        return calendarController.showTasks.value;
-      } else if (event is ExpenseModel) {
-        return calendarController.showExpenses.value;
-      }
-      return false;
-    }).toList();
-
-    if (filteredEvents.isEmpty) return const SizedBox.shrink();
-
     return Container(
       width: isTablet ? 32 : 24,
       height: isTablet ? 32 : 24,
@@ -335,7 +370,7 @@ class CalendarScreen extends StatelessWidget {
       ),
       alignment: Alignment.center,
       child: Text(
-        '${filteredEvents.length}',
+        '${events.length}',
         style: TextStyle(
             color: Colors.white,
             fontSize: isTablet ? 14 : 10,
@@ -413,8 +448,9 @@ class CalendarScreen extends StatelessWidget {
                   ElevatedButton.icon(
                     onPressed: () {
                       Get.back();
-                      Get.toNamed(AppRoutes.createExpense,
-                          arguments: {'date': selectedDay});
+                      Get.toNamed(AppRoutes.createExpense, arguments: {
+                        'date': calendarController.selectedDay.value
+                      });
                     },
                     icon: Icon(Icons.add_card_rounded,
                         color: Colors.white, size: isTablet ? 30 : 24),
@@ -534,7 +570,7 @@ class CalendarScreen extends StatelessWidget {
       color: Theme.of(context).cardTheme.color,
       child: InkWell(
         onTap: () => Get.toNamed(AppRoutes.expenseDetail,
-            arguments: {'expense': expense}),
+            arguments: {'expenseId': expense.id}),
         borderRadius: BorderRadius.circular(15),
         child: Padding(
           padding: EdgeInsets.all(isTablet ? 18 : 14),

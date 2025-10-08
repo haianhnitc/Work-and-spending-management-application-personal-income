@@ -1,9 +1,13 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:intl/intl.dart';
+import '../../../../core/constants/app_enums.dart';
 import '../controllers/budget_controller.dart';
 import '../../data/models/budget_model.dart';
+import '../../../../core/utils/snackbar_helper.dart';
 
 class BudgetDetailScreen extends StatelessWidget {
   final BudgetModel budget;
@@ -58,7 +62,8 @@ class BudgetDetailScreen extends StatelessWidget {
   }
 
   Widget _buildBudgetOverview(BuildContext context, bool isTablet) {
-    final usagePercentage = budget.amount > 0 ? (budget.spentAmount / budget.amount) * 100 : 0;
+    final usagePercentage =
+        budget.amount > 0 ? (budget.spentAmount / budget.amount) * 100 : 0;
     final isOverBudget = budget.spentAmount > budget.amount;
     final isNearLimit = usagePercentage >= 80;
 
@@ -158,7 +163,8 @@ class BudgetDetailScreen extends StatelessWidget {
     ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.3, end: 0);
   }
 
-  Widget _buildOverviewItem(BuildContext context, String title, String value, IconData icon, Color color) {
+  Widget _buildOverviewItem(BuildContext context, String title, String value,
+      IconData icon, Color color) {
     return Column(
       children: [
         Icon(icon, size: 32, color: color),
@@ -186,7 +192,8 @@ class BudgetDetailScreen extends StatelessWidget {
   }
 
   Widget _buildProgressChart(BuildContext context, bool isTablet) {
-    final usagePercentage = budget.amount > 0 ? (budget.spentAmount / budget.amount) * 100 : 0;
+    final usagePercentage =
+        budget.amount > 0 ? (budget.spentAmount / budget.amount) * 100 : 0;
     final remainingPercentage = 100 - usagePercentage;
 
     return Card(
@@ -198,7 +205,8 @@ class BudgetDetailScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.pie_chart, size: 20, color: Theme.of(context).primaryColor),
+                Icon(Icons.pie_chart,
+                    size: 20, color: Theme.of(context).primaryColor),
                 SizedBox(width: 8),
                 Text(
                   'Biểu Đồ Sử Dụng',
@@ -228,7 +236,8 @@ class BudgetDetailScreen extends StatelessWidget {
                     ),
                     PieChartSectionData(
                       value: budget.amount - budget.spentAmount,
-                      title: 'Còn lại\n${remainingPercentage.toStringAsFixed(1)}%',
+                      title:
+                          'Còn lại\n${remainingPercentage.toStringAsFixed(1)}%',
                       color: Colors.green,
                       radius: 60,
                       titleStyle: TextStyle(
@@ -259,7 +268,8 @@ class BudgetDetailScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.info, size: 20, color: Theme.of(context).primaryColor),
+                Icon(Icons.info,
+                    size: 20, color: Theme.of(context).primaryColor),
                 SizedBox(width: 8),
                 Text(
                   'Chi Tiết Ngân Sách',
@@ -272,15 +282,20 @@ class BudgetDetailScreen extends StatelessWidget {
             ),
             SizedBox(height: 16),
             _buildDetailItem('Tên', budget.name),
-            _buildDetailItem('Danh mục', _getCategoryDisplayName(budget.category)),
-            _buildDetailItem('Chu kỳ', _getPeriodDisplayName(budget.period)),
-            _buildDetailItem('Ngày bắt đầu', '${budget.startDate.day}/${budget.startDate.month}/${budget.startDate.year}'),
-            _buildDetailItem('Ngày kết thúc', '${budget.endDate.day}/${budget.endDate.month}/${budget.endDate.year}'),
-            _buildDetailItem('Trạng thái', budget.isActive ? 'Hoạt động' : 'Không hoạt động'),
+            _buildDetailItem('Danh mục', categoryToString(budget.category)),
+            _buildDetailItem('Chu kỳ', getPeriodDisplayName(budget.period)),
+            _buildDetailItem('Ngày bắt đầu',
+                '${budget.startDate.day}/${budget.startDate.month}/${budget.startDate.year}'),
+            _buildDetailItem('Ngày kết thúc',
+                '${budget.endDate.day}/${budget.endDate.month}/${budget.endDate.year}'),
+            _buildDetailItem('Trạng thái',
+                budget.isActive ? 'Hoạt động' : 'Không hoạt động'),
             if (budget.tags.isNotEmpty)
               _buildDetailItem('Nhãn', budget.tags.join(', ')),
-            _buildDetailItem('Tạo lúc', '${budget.createdAt.day}/${budget.createdAt.month}/${budget.createdAt.year}'),
-            _buildDetailItem('Cập nhật', '${budget.updatedAt.day}/${budget.updatedAt.month}/${budget.updatedAt.year}'),
+            _buildDetailItem('Tạo lúc',
+                '${budget.createdAt.day}/${budget.createdAt.month}/${budget.createdAt.year}'),
+            _buildDetailItem('Cập nhật',
+                '${budget.updatedAt.day}/${budget.updatedAt.month}/${budget.updatedAt.year}'),
           ],
         ),
       ),
@@ -326,7 +341,8 @@ class BudgetDetailScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.settings, size: 20, color: Theme.of(context).primaryColor),
+                Icon(Icons.settings,
+                    size: 20, color: Theme.of(context).primaryColor),
                 SizedBox(width: 8),
                 Text(
                   'Hành Động',
@@ -342,7 +358,8 @@ class BudgetDetailScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () => _budgetController.autoAdjustBudget(budget.id),
+                    onPressed: () =>
+                        _budgetController.autoAdjustBudget(budget.id),
                     icon: Icon(Icons.auto_fix_high),
                     label: Text('Tự Động Điều Chỉnh'),
                     style: ElevatedButton.styleFrom(
@@ -354,7 +371,8 @@ class BudgetDetailScreen extends StatelessWidget {
                 SizedBox(width: 8),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () => _budgetController.syncBudgetWithExpenses(budget.id),
+                    onPressed: () =>
+                        _budgetController.syncBudgetWithExpenses(budget.id),
                     icon: Icon(Icons.sync),
                     label: Text('Đồng Bộ'),
                     style: ElevatedButton.styleFrom(
@@ -365,21 +383,36 @@ class BudgetDetailScreen extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () => _exportReport(context),
+                    onPressed: () => _shareReport(context),
+                    icon: Icon(Icons.share),
+                    label: Text('Chia sẻ Text'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _exportFileReport(context),
                     icon: Icon(Icons.download),
-                    label: Text('Xuất Báo Cáo'),
+                    label: Text('Xuất File'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
                       foregroundColor: Colors.white,
                     ),
                   ),
                 ),
-                SizedBox(width: 8),
+              ],
+            ),
+            SizedBox(height: 8),
+            Row(
+              children: [
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () => _duplicateBudget(context),
@@ -409,7 +442,8 @@ class BudgetDetailScreen extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.notifications, size: 20, color: Theme.of(context).primaryColor),
+                Icon(Icons.notifications,
+                    size: 20, color: Theme.of(context).primaryColor),
                 SizedBox(width: 8),
                 Text(
                   'Cảnh Báo',
@@ -504,8 +538,8 @@ class BudgetDetailScreen extends StatelessWidget {
   }
 
   void _editBudget(BuildContext context) {
-    // TODO: Implement edit budget
-    Get.snackbar('Thông báo', 'Tính năng đang phát triển!');
+    Get.toNamed('/budget-create',
+        arguments: {'budget': budget, 'isEdit': true});
   }
 
   void _deleteBudget(BuildContext context) {
@@ -522,6 +556,7 @@ class BudgetDetailScreen extends StatelessWidget {
             onPressed: () {
               Get.back();
               _budgetController.deleteBudget(budget.id);
+              Get.back();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
@@ -534,36 +569,130 @@ class BudgetDetailScreen extends StatelessWidget {
     );
   }
 
-  void _exportReport(BuildContext context) async {
-    final format = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Chọn định dạng'),
+  void _shareReport(BuildContext context) async {
+    try {
+      final report = _generateBudgetReport(budget);
+      await Share.share(report);
+      SnackbarHelper.showSuccess('Đã chia sẻ báo cáo ngân sách');
+    } catch (e) {
+      SnackbarHelper.showError('Không thể chia sẻ báo cáo: $e');
+    }
+  }
+
+  void _exportFileReport(BuildContext context) async {
+    try {
+      await _budgetController.exportBudgetReport(budget.id);
+    } catch (e) {
+      _showExportFailureDialog(context, e.toString());
+    }
+  }
+
+  void _showExportFailureDialog(BuildContext context, String error) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Export file thất bại'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ListTile(
-              title: Text('PDF'),
-              onTap: () => Get.back(result: 'pdf'),
-            ),
-            ListTile(
-              title: Text('Excel'),
-              onTap: () => Get.back(result: 'xlsx'),
-            ),
-            ListTile(
-              title: Text('CSV'),
-              onTap: () => Get.back(result: 'csv'),
-            ),
+            Text('Lỗi: $error'),
+            const SizedBox(height: 16),
+            const Text('Bạn có muốn chia sẻ báo cáo dưới dạng text không?'),
           ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              _shareReport(context);
+            },
+            child: const Text('Chia sẻ Text'),
+          ),
+        ],
       ),
     );
+  }
 
-    if (format != null) {
-      final reportPath = await _budgetController.exportBudgetReport(budget.id, format);
-      if (reportPath != null) {
-        Get.snackbar('Thành công', 'Đã xuất báo cáo: $reportPath');
-      }
+  String _generateBudgetReport(BudgetModel budget) {
+    try {
+      final now = DateTime.now();
+
+      // Ensure safe type conversion to double for calculations
+      final budgetAmount = budget.amount.toDouble();
+      final spentAmount = budget.spentAmount.toDouble();
+
+      final progress =
+          budgetAmount > 0 ? (spentAmount / budgetAmount * 100) : 0.0;
+      final remaining = budgetAmount - spentAmount;
+
+      // Safe currency formatting with explicit double conversion
+      final formatter = NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ');
+      final formattedBudgetAmount = formatter.format(budgetAmount);
+      final formattedSpentAmount = formatter.format(spentAmount);
+      final formattedRemaining = formatter.format(remaining);
+
+      return '''
+💰 BÁO CÁO NGÂN SÁCH CHI TIẾT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📅 Ngày tạo: ${DateFormat('dd/MM/yyyy HH:mm').format(now)}
+
+📋 THÔNG TIN NGÂN SÁCH:
+• Tên: ${budget.name}
+• Danh mục: ${budget.category}
+• Khoảng thời gian: ${budget.period}
+
+💰 TÀI CHÍNH:
+• Số tiền dự kiến: $formattedBudgetAmount
+• Đã chi tiêu: $formattedSpentAmount
+• Còn lại: $formattedRemaining
+
+📊 TIẾN ĐỘ:
+• Tỷ lệ sử dụng: ${progress.toStringAsFixed(1)}%
+• Trạng thái: ${budget.isActive ? '🟢 Đang hoạt động' : '🔴 Không hoạt động'}
+
+📅 THỜI GIAN:
+• Bắt đầu: ${DateFormat('dd/MM/yyyy').format(budget.startDate)}
+• Kết thúc: ${DateFormat('dd/MM/yyyy').format(budget.endDate)}
+
+🎯 ĐÁNH GIÁ:
+${_getBudgetAssessment(progress, remaining)}
+
+──────────────────────────────────
+Được tạo bởi Task & Expense Manager
+''';
+    } catch (e) {
+      // Fallback report if formatting fails
+      return '''
+💰 BÁO CÁO NGÂN SÁCH CHI TIẾT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+❌ Có lỗi khi tạo báo cáo chi tiết: $e
+
+📋 THÔNG TIN CƠ BẢN:
+• Tên: ${budget.name}
+• Danh mục: ${budget.category}
+• Trạng thái: ${budget.isActive ? 'Đang hoạt động' : 'Không hoạt động'}
+
+──────────────────────────────────
+Được tạo bởi Task & Expense Manager
+''';
+    }
+  }
+
+  String _getBudgetAssessment(double progress, double remaining) {
+    if (progress <= 50) {
+      return '✅ Tuyệt vời! Bạn đang kiểm soát tốt ngân sách.';
+    } else if (progress <= 80) {
+      return '⚠️ Cần chú ý! Đã sử dụng hơn 50% ngân sách.';
+    } else if (progress <= 100) {
+      return '🚨 Cảnh báo! Sắp vượt ngân sách dự kiến.';
+    } else {
+      return '❌ Đã vượt ngân sách ${(progress - 100).toStringAsFixed(1)}%!';
     }
   }
 
@@ -577,50 +706,6 @@ class BudgetDetailScreen extends StatelessWidget {
 
     if (newStartDate != null) {
       await _budgetController.duplicateBudget(budget.id, newStartDate);
-    }
-  }
-
-  String _getCategoryDisplayName(String category) {
-    switch (category) {
-      case 'general':
-        return 'Tổng quát';
-      case 'food':
-        return 'Thực phẩm';
-      case 'transport':
-        return 'Giao thông';
-      case 'shopping':
-        return 'Mua sắm';
-      case 'entertainment':
-        return 'Giải trí';
-      case 'utilities':
-        return 'Tiện ích';
-      case 'health':
-        return 'Sức khỏe';
-      case 'education':
-        return 'Giáo dục';
-      case 'travel':
-        return 'Du lịch';
-      case 'other':
-        return 'Khác';
-      default:
-        return category;
-    }
-  }
-
-  String _getPeriodDisplayName(String period) {
-    switch (period) {
-      case 'daily':
-        return 'Hàng ngày';
-      case 'weekly':
-        return 'Hàng tuần';
-      case 'monthly':
-        return 'Hàng tháng';
-      case 'yearly':
-        return 'Hàng năm';
-      case 'custom':
-        return 'Tùy chỉnh';
-      default:
-        return period;
     }
   }
 }

@@ -29,6 +29,11 @@ dependencies:
   share_plus: ^11.0.0
   google_fonts: ^6.2.1
   google_generative_ai: ^0.4.7
+  pdf: ^3.11.1
+  path_provider: ^2.1.4
+  permission_handler: ^11.3.1
+  excel: ^4.0.2
+  csv: ^6.0.0
 
 dev_dependencies:
   flutter_test:
@@ -42,3 +47,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+  
+  # Include assets folder
+  assets:
+    - assets/

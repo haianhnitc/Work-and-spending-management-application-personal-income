@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -7,6 +7,7 @@ import 'package:task_expense_manager/core/constants/app_enums.dart';
 import '../../data/models/task_model.dart';
 import '../controllers/task_controller.dart';
 import '../../../../routes/app_routes.dart';
+import '../../../../core/utils/snackbar_helper.dart';
 
 class TaskDetailScreen extends StatelessWidget {
   final TaskModel task;
@@ -243,27 +244,13 @@ class TaskDetailScreen extends StatelessWidget {
                 onChanged: (newValue) {
                   final updatedTask = task.copyWith(isCompleted: newValue);
                   controller.updateTask(updatedTask);
-                  Get.snackbar(
-                    newValue ? '🎉 Hoàn thành!' : '🔄 Đang chờ',
-                    newValue
-                        ? 'Công việc "${task.title}" đã được hoàn thành.'
-                        : 'Công việc "${task.title}" đang chờ xử lý.',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: newValue
-                        ? Colors.green.shade600
-                        : Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withOpacity(0.9),
-                    colorText: Colors.white,
-                    icon: Icon(
-                        newValue
-                            ? Icons.check_circle_outline
-                            : Icons.pending_actions,
-                        color: Colors.white),
-                    margin: EdgeInsets.all(10),
-                    borderRadius: 10,
-                  );
+                  if (newValue) {
+                    SnackbarHelper.showSuccess(
+                        'Công việc "${task.title}" đã được hoàn thành.');
+                  } else {
+                    SnackbarHelper.showInfo(
+                        'Công việc "${task.title}" đang chờ xử lý.');
+                  }
                 },
                 activeColor: Theme.of(context).colorScheme.primary,
                 inactiveThumbColor: Colors.grey.shade400,
@@ -334,16 +321,8 @@ class TaskDetailScreen extends StatelessWidget {
               controller.deleteTask(task.id);
               Get.back();
               Get.back();
-              Get.snackbar(
-                '🗑️ Đã xóa!',
-                'Công việc "${task.title}" đã được xóa thành công.',
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Colors.red.shade600,
-                colorText: Colors.white,
-                icon: Icon(Icons.delete_forever_rounded, color: Colors.white),
-                margin: EdgeInsets.all(10),
-                borderRadius: 10,
-              );
+              SnackbarHelper.showSuccess(
+                  'Công việc "${task.title}" đã được xóa thành công.');
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade600,

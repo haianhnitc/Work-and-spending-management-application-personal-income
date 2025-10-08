@@ -1,6 +1,7 @@
-import 'package:get/get.dart';
+﻿import 'package:get/get.dart';
 import 'package:task_expense_manager/dependency_injection/main_config.dart';
 import '../../../../core/constants/app_enums.dart';
+import '../../../../core/utils/snackbar_helper.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../data/models/task_model.dart';
 import '../../domain/usecase/task_usecase.dart';
@@ -28,7 +29,7 @@ class TaskController extends GetxController {
 
   void fetchTasks() {
     if (userId == null) {
-      Get.snackbar('error'.tr, 'noUserLoggedIn'.tr);
+      SnackbarHelper.showError('Người dùng chưa đăng nhập');
       isLoading.value = false;
       return;
     }
@@ -36,58 +37,75 @@ class TaskController extends GetxController {
       (either) {
         isLoading.value = false;
         either.fold(
-          (failure) => Get.snackbar('error'.tr, failure.message),
+          (failure) =>
+              SnackbarHelper.showError('Lỗi tải công việc: ${failure.message}'),
           (taskList) => tasks.assignAll(taskList),
         );
       },
       onError: (e) {
         isLoading.value = false;
-        Get.snackbar('error'.tr, 'failedToFetchTasks'.tr);
+        SnackbarHelper.showError('Không thể tải danh sách công việc');
       },
     );
   }
 
   Future<void> addTask(TaskModel task) async {
     if (userId == null) {
-      Get.snackbar('error'.tr, 'noUserLoggedIn'.tr);
+      SnackbarHelper.showError('Người dùng chưa đăng nhập');
       return;
     }
     final result = await _taskUseCase.addTask(userId!, task);
     result.fold(
-      (failure) => Get.snackbar('error'.tr, failure.message),
-      (_) => Get.snackbar('success'.tr, 'taskCreated'.tr),
+      (failure) =>
+          SnackbarHelper.showError('Lỗi thêm công việc: ${failure.message}'),
+      (_) {
+        Get.back();
+        Future.delayed(Duration(milliseconds: 300), () {
+          SnackbarHelper.showSuccess('Đã thêm công việc "${task.title}"');
+        });
+      },
     );
   }
 
   Future<void> updateTask(TaskModel task) async {
     if (userId == null) {
-      Get.snackbar('error'.tr, 'noUserLoggedIn'.tr);
+      SnackbarHelper.showError('Người dùng chưa đăng nhập');
       return;
     }
     final result = await _taskUseCase.updateTask(userId!, task);
     result.fold(
-      (failure) => Get.snackbar('error'.tr, failure.message),
-      (_) => Get.snackbar('success'.tr, 'taskUpdated'.tr),
+      (failure) => SnackbarHelper.showError(
+          'Lỗi cập nhật công việc: ${failure.message}'),
+      (_) {
+        final index = tasks.indexWhere((t) => t.id == task.id);
+        if (index != -1) {
+          tasks[index] = task;
+        }
+        Get.back();
+        Future.delayed(Duration(milliseconds: 300), () {
+          SnackbarHelper.showSuccess('Đã cập nhật công việc "${task.title}"');
+        });
+      },
     );
   }
 
   Future<void> deleteTask(String taskId) async {
     if (userId == null) {
-      Get.snackbar('error'.tr, 'noUserLoggedIn'.tr);
+      SnackbarHelper.showError('Người dùng chưa đăng nhập');
       return;
     }
     final result = await _taskUseCase.deleteTask(userId!, taskId);
     result.fold(
-      (failure) => Get.snackbar('error'.tr, failure.message),
-      (_) => Get.snackbar('success'.tr, 'taskDeleted'.tr),
+      (failure) =>
+          SnackbarHelper.showError('Lỗi xóa công việc: ${failure.message}'),
+      (_) => SnackbarHelper.showSuccess('Đã xóa công việc thành công'),
     );
   }
 
-  // Computed properties for filtered data
   List<TaskModel> get filteredTasks {
     return tasks.where((task) {
       final matchesCategory = selectedCategory.value.isEmpty ||
-          task.category == displayNameToCategory(selectedCategory.value);
+          categoryToString(task.category) == selectedCategory.value;
       final matchesSearch = searchQuery.value.isEmpty ||
           task.title.toLowerCase().contains(searchQuery.value.toLowerCase());
       return matchesCategory && matchesSearch;
@@ -98,22 +116,18 @@ class TaskController extends GetxController {
     final categoryTotals = <String, int>{};
 
     if (selectedCategory.value.isNotEmpty) {
-      // Convert display name to category key for comparison
-      final categoryKey = displayNameToCategory(selectedCategory.value);
-
-      // Có filter category: chỉ hiển thị category đó với data đã filter theo search
       final categoryTasks = tasks.where((task) {
-        final matchesCategory = task.category == categoryKey;
+        final matchesCategory =
+            categoryToString(task.category) == selectedCategory.value;
         final matchesSearch = searchQuery.value.isEmpty ||
             task.title.toLowerCase().contains(searchQuery.value.toLowerCase());
         return matchesCategory && matchesSearch;
       });
 
       if (categoryTasks.isNotEmpty) {
-        categoryTotals[categoryKey] = categoryTasks.length;
+        categoryTotals[selectedCategory.value] = categoryTasks.length;
       }
     } else {
-      // Không có filter category: hiển thị tất cả categories với data đã filter theo search
       for (var category in Category.values) {
         final categoryTasks = tasks.where((task) {
           final matchesCategory = task.category == category.name;

@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:task_expense_manager/core/services/ai_service.dart';
-import 'package:task_expense_manager/core/services/advanced_ai_service.dart';
+import 'package:task_expense_manager/core/services/file_export_service.dart';
 import 'package:task_expense_manager/features/ai/ai_controller.dart';
 import 'package:task_expense_manager/features/expense/data/datasource/expense_datasource.dart';
 import 'package:task_expense_manager/features/expense/data/repository/expense_repository_impl.dart';
@@ -32,8 +32,8 @@ class AppBinding extends Bindings {
       print('🤖 Khởi tạo AIService cơ bản');
       Get.put(AIService(), permanent: true);
 
-      print('🧠 Khởi tạo AdvancedAIService');
-      Get.put(AdvancedAIService(), permanent: true);
+      print('📁 Khởi tạo FileExportService');
+      Get.put(FileExportService(), permanent: true);
 
       Get.lazyPut<BudgetRemoteDataSource>(() {
         print('📦 Khởi tạo BudgetRemoteDataSource');
@@ -98,77 +98,10 @@ class AppBinding extends Bindings {
         return AIController();
       }, permanent: true);
 
-      print('🧠 Khởi tạo AdvancedAIService');
-      Get.find<AdvancedAIService>();
-
       print('✅ Hoàn thành khởi tạo tất cả dependencies');
     } catch (e) {
       print('❌ Lỗi khi khởi tạo dependencies: $e');
       rethrow;
-    }
-  }
-
-  static void checkServicesStatus() {
-    try {
-      print('🔍 Kiểm tra trạng thái services...');
-
-      if (Get.isRegistered<AIService>()) {
-        print('   - AIService: ✅ Đã đăng ký');
-      } else {
-        print('   - AIService: ❌ Chưa đăng ký');
-      }
-
-      if (Get.isRegistered<AdvancedAIService>()) {
-        print('   - AdvancedAIService: ✅ Đã đăng ký');
-      } else {
-        print('   - AdvancedAIService: ❌ Chưa đăng ký');
-      }
-
-      if (Get.isRegistered<AuthController>()) {
-        print('   - AuthController: ✅ Đã đăng ký');
-      } else {
-        print('   - AuthController: ❌ Chưa đăng ký');
-      }
-
-      if (Get.isRegistered<ExpenseController>()) {
-        print('   - ExpenseController: ✅ Đã đăng ký');
-      } else {
-        print('   - ExpenseController: ❌ Chưa đăng ký');
-      }
-
-      if (Get.isRegistered<TaskController>()) {
-        print('   - TaskController: ✅ Đã đăng ký');
-      } else {
-        print('   - TaskController: ❌ Chưa đăng ký');
-      }
-
-      if (Get.isRegistered<BudgetController>()) {
-        print('   - BudgetController: ✅ Đã đăng ký');
-      } else {
-        print('   - BudgetController: ❌ Chưa đăng ký');
-      }
-
-      if (Get.isRegistered<AIController>()) {
-        print('   - AIController: ✅ Đã đăng ký');
-      } else {
-        print('   - AIController: ❌ Chưa đăng ký');
-      }
-
-      if (Get.isRegistered<BudgetRepository>()) {
-        print('   - BudgetRepository: ✅ Đã đăng ký');
-      } else {
-        print('   - BudgetRepository: ❌ Chưa đăng ký');
-      }
-
-      if (Get.isRegistered<ExpenseRepository>()) {
-        print('   - ExpenseRepository: ✅ Đã đăng ký');
-      } else {
-        print('   - ExpenseRepository: ❌ Chưa đăng ký');
-      }
-
-      print('✅ Kiểm tra hoàn tất');
-    } catch (e) {
-      print('❌ Lỗi khi kiểm tra services: $e');
     }
   }
 }

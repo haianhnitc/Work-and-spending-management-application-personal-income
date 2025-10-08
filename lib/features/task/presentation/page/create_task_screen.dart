@@ -1,17 +1,18 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/constants/app_enums.dart';
 import '../../data/models/task_model.dart';
 import '../controllers/task_controller.dart';
+import '../../../../core/utils/snackbar_helper.dart';
 
 class CreateTaskScreen extends StatelessWidget {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _estimatedCostController = TextEditingController();
-  final RxString _category = RxString('');
+  final RxString _category = RxString('study');
   final _dueDateController = TextEditingController();
   final DateTime? initialDate = Get.arguments?['date'];
   final TaskModel? task = Get.arguments?['task'];
@@ -26,10 +27,8 @@ class CreateTaskScreen extends StatelessWidget {
     } else if (initialDate != null) {
       _dueDateController.text = DateFormat('dd/MM/yyyy').format(initialDate!);
     } else {
-      // Mặc định ngày hạn là ngày hôm nay nếu không có initialDate hoặc task
       _dueDateController.text = DateFormat('dd/MM/yyyy').format(DateTime.now());
     }
-    // Đảm bảo category có giá trị mặc định nếu là tạo mới
     if (_category.value.isEmpty && Category.values.isNotEmpty) {
       _category.value = Category.values.first.name;
     }
@@ -130,30 +129,14 @@ class CreateTaskScreen extends StatelessWidget {
                       );
                       if (task == null) {
                         await controller.addTask(newTask);
-                        Get.snackbar(
-                          'Thành công',
-                          'Đã tạo công việc "${newTask.title}"',
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: Colors.green,
-                          colorText: Colors.white,
-                        );
                       } else {
                         await controller.updateTask(newTask);
-                        Get.snackbar(
-                          'Thành công',
-                          'Đã cập nhật công việc "${newTask.title}"',
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: Colors.blue,
-                          colorText: Colors.white,
-                        );
                       }
+                      await Future.delayed(Duration(milliseconds: 100));
                       Get.back();
                     } else {
-                      Get.snackbar(
-                          'Lỗi', 'Vui lòng điền đầy đủ các trường bắt buộc',
-                          snackPosition: SnackPosition.BOTTOM,
-                          backgroundColor: Colors.redAccent,
-                          colorText: Colors.white);
+                      SnackbarHelper.showError(
+                          'Vui lòng điền đầy đủ các trường bắt buộc');
                     }
                   },
                   child: Text(task == null ? 'Tạo công việc' : 'Lưu công việc',
@@ -256,11 +239,14 @@ class CreateTaskScreen extends StatelessWidget {
                     color: Theme.of(context).primaryColor.withOpacity(0.7)),
               ),
               items: Category.values
-                  .map((category) => DropdownMenuItem(
-                        value: categoryToString(category.name),
-                        child: Text(categoryToString(category.name),
-                            style: TextStyle(fontSize: isTablet ? 18 : 16)),
-                      ))
+                  .map(
+                    (category) => DropdownMenuItem(
+                      value: category.name,
+                      child: Text(
+                        categoryToString(category),
+                      ),
+                    ),
+                  )
                   .toList(),
               onChanged: (value) {
                 if (value != null) {

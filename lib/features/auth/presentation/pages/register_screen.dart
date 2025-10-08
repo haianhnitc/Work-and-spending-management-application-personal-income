@@ -81,9 +81,7 @@ class RegisterScreen extends StatelessWidget {
               duration: 400.ms,
               curve: Curves.easeOutBack,
             ),
-
         SizedBox(height: isTablet ? 32 : 24),
-
         Text(
           'Tạo tài khoản mới! 🚀',
           style: Theme.of(context).textTheme.displaySmall?.copyWith(
@@ -97,9 +95,7 @@ class RegisterScreen extends StatelessWidget {
               duration: 300.ms,
               delay: 100.ms,
             ),
-
         SizedBox(height: isTablet ? 16 : 12),
-
         Text(
           'Đăng ký để bắt đầu quản lý công việc và chi tiêu',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
@@ -151,7 +147,6 @@ class RegisterScreen extends StatelessWidget {
                         ),
                   ),
                 ),
-
                 Container(
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,
@@ -186,9 +181,7 @@ class RegisterScreen extends StatelessWidget {
                     ),
               ],
             ),
-
             SizedBox(height: isTablet ? 32 : 24),
-
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
@@ -260,14 +253,12 @@ class RegisterScreen extends StatelessWidget {
                   delay: 150.ms,
                   curve: Curves.easeOutCubic,
                 ),
-
             SizedBox(height: isTablet ? 32 : 24),
-
             Obx(() => AuthForm(
                   isLogin: false,
                   isLoading: controller.isLoading.value,
                   errorMessage: controller.errorMessage.value,
-                  onSubmit: controller.signUp,
+                  onSubmitWithName: controller.signUp,
                   onSwitch: () => Get.toNamed('/login'),
                 )),
           ],

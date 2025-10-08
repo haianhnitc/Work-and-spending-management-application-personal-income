@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:fl_chart/fl_chart.dart';
 import '../../../../core/constants/app_enums.dart';
 import '../../../../core/widgets/chart_widgets.dart';
+import '../../../../core/widgets/common_app_bar.dart';
 import '../controllers/task_controller.dart';
 
 class TaskListScreen extends StatelessWidget {
@@ -16,34 +16,90 @@ class TaskListScreen extends StatelessWidget {
     return DefaultTabController(
       length: 5,
       child: Scaffold(
-        appBar: AppBar(
-          title: Text('Công việc',
-              style: Theme.of(context).appBarTheme.titleTextStyle),
-          backgroundColor: Theme.of(context).primaryColor,
+        appBar: CommonAppBar(
+          title: 'Công việc',
+          type: AppBarType.primary,
           actions: [
             Obx(() => controller.selectedCategory.value.isNotEmpty
-                ? Chip(
-                    label: Text(
-                        categoryToString(controller.selectedCategory.value),
-                        style: TextStyle(color: Colors.white)),
-                    backgroundColor: Colors.white24,
-                    onDeleted: () => controller.clearCategoryFilter(),
-                  ).animate().fadeIn(duration: 200.ms)
+                ? Padding(
+                    padding: EdgeInsets.only(right: 8),
+                    child: Chip(
+                      label: Text(controller.selectedCategory.value,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          )),
+                      backgroundColor: Colors.white.withValues(alpha: 0.2),
+                      deleteIconColor: Colors.white,
+                      onDeleted: () => controller.clearCategoryFilter(),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ).animate().fadeIn(duration: 200.ms),
+                  )
                 : SizedBox.shrink()),
             IconButton(
-              icon: Icon(Icons.filter_list, color: Colors.white),
-              onPressed: () => _showFilterDialog(context),
-            ).animate().scale(duration: 200.ms),
-            IconButton(
-              icon: Icon(Icons.search, color: Colors.white),
-              onPressed: () => _showSearchBar(context),
+              icon: Icon(Icons.more_vert, color: Colors.white),
+              onPressed: () {
+                showMenu(
+                  context: context,
+                  position: RelativeRect.fromLTRB(
+                    MediaQuery.of(context).size.width - 150,
+                    kToolbarHeight,
+                    0,
+                    0,
+                  ),
+                  items: [
+                    PopupMenuItem(
+                      value: 'filter',
+                      child: Row(
+                        children: [
+                          Icon(Icons.filter_list, color: Colors.blue),
+                          SizedBox(width: 8),
+                          Text('Lọc danh mục'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'search',
+                      child: Row(
+                        children: [
+                          Icon(Icons.search, color: Colors.green),
+                          SizedBox(width: 8),
+                          Text('Tìm kiếm'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ).then((value) {
+                  if (value != null) {
+                    switch (value) {
+                      case 'filter':
+                        _showFilterDialog(context);
+                        break;
+                      case 'search':
+                        _showSearchBar(context);
+                        break;
+                    }
+                  }
+                });
+              },
             ).animate().scale(duration: 200.ms),
           ],
           bottom: TabBar(
+            padding: EdgeInsets.zero,
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white70,
             indicatorColor: Colors.white,
+            indicatorWeight: 3,
             isScrollable: true,
+            labelStyle: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+            unselectedLabelStyle: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+            ),
             tabs: [
               Tab(text: 'Tất cả'),
               Tab(text: 'Hôm nay'),
@@ -71,6 +127,7 @@ class TaskListScreen extends StatelessWidget {
           ],
         ),
         floatingActionButton: FloatingActionButton(
+          heroTag: "task_fab",
           onPressed: () => Get.toNamed('/task-create'),
           backgroundColor: Theme.of(context).primaryColor,
           child: Icon(Icons.add, color: Colors.white),
@@ -121,8 +178,7 @@ class TaskListScreen extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Column(
         children: [
-          // Fixed height container để layout luôn consistent
-          Container(
+          SizedBox(
             height: 24,
             child: Text(
               controller.selectedCategory.value.isNotEmpty ||
@@ -133,14 +189,12 @@ class TaskListScreen extends StatelessWidget {
             ),
           ),
           SizedBox(height: 8),
-          // Chart Type Selector
           ChartSelector(
             selectedChartType: controller.selectedChartType.value,
             onChartTypeChanged: controller.setChartType,
             isTablet: isTablet,
           ),
           SizedBox(height: 12),
-          // Chart Display
           Expanded(
             child: _buildSelectedChart(context, categoryTotals, isTablet),
           ),
@@ -209,37 +263,40 @@ class TaskListScreen extends StatelessWidget {
         itemCount: tasks.length,
         itemBuilder: (context, index) {
           final task = tasks[index];
-          return Dismissible(
-            key: Key(task.id),
-            onDismissed: (direction) => controller.deleteTask(task.id),
-            background: Container(
-              color: Colors.red,
-              alignment: Alignment.centerRight,
-              padding: EdgeInsets.only(right: 16),
-              child: Icon(Icons.delete, color: Colors.white),
-            ),
-            child: Card(
-              child: ListTile(
-                leading: Checkbox(
-                  value: task.isCompleted,
-                  onChanged: (value) {
-                    controller
-                        .updateTask(task.copyWith(isCompleted: value ?? false));
-                  },
-                ).animate().scale(duration: 200.ms),
-                title: Text(task.title,
-                    style: Theme.of(context).textTheme.bodyLarge),
-                subtitle: Text(
-                  'Hạn: ${DateFormat('dd/MM/yyyy').format(task.dueDate)}\nDanh mục: ${categoryToString(task.category)}',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                trailing: Icon(Icons.arrow_forward,
-                    color: Theme.of(context).primaryColor),
-                onTap: () =>
-                    Get.toNamed('/task-detail', arguments: {'task': task}),
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Dismissible(
+              key: Key(task.id),
+              onDismissed: (direction) => controller.deleteTask(task.id),
+              background: Container(
+                color: Colors.red,
+                alignment: Alignment.centerRight,
+                padding: EdgeInsets.only(right: 16),
+                child: Icon(Icons.delete, color: Colors.white),
               ),
-            ),
-          ).animate().fadeIn(duration: 300.ms, delay: (100 * index).ms);
+              child: Card(
+                child: ListTile(
+                  leading: Checkbox(
+                    value: task.isCompleted,
+                    onChanged: (value) {
+                      controller.updateTask(
+                          task.copyWith(isCompleted: value ?? false));
+                    },
+                  ).animate().scale(duration: 200.ms),
+                  title: Text(task.title,
+                      style: Theme.of(context).textTheme.bodyLarge),
+                  subtitle: Text(
+                    'Hạn: ${DateFormat('dd/MM/yyyy').format(task.dueDate)}\nDanh mục: ${categoryToString(task.category)}',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  trailing: Icon(Icons.arrow_forward,
+                      color: Theme.of(context).primaryColor),
+                  onTap: () =>
+                      Get.toNamed('/task-detail', arguments: {'task': task}),
+                ),
+              ),
+            ).animate().fadeIn(duration: 300.ms, delay: (100 * index).ms),
+          );
         },
       );
     });
@@ -306,9 +363,9 @@ class TaskListScreen extends StatelessWidget {
             },
             child: Text('Xóa'),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () => Get.back(),
-            child: Text('Đóng'),
+            child: Text('OK'),
           ),
         ],
       ).animate().fadeIn(duration: 300.ms),

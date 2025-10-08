@@ -1,5 +1,8 @@
-import 'package:get/get.dart';
+﻿import 'package:get/get.dart';
 import 'package:injectable/injectable.dart';
+import 'package:task_expense_manager/features/auth/presentation/controllers/auth_controller.dart';
+import '../../../../core/services/file_export_service.dart';
+import '../../../../core/utils/snackbar_helper.dart';
 import '../../domain/usecase/budget_usecase.dart';
 import '../../data/models/budget_model.dart';
 
@@ -15,6 +18,7 @@ class BudgetController extends GetxController {
   final RxString errorMessage = ''.obs;
   final RxMap<String, dynamic> budgetOverview = <String, dynamic>{}.obs;
   final RxList<BudgetAlertModel> alerts = <BudgetAlertModel>[].obs;
+  final authController = Get.find<AuthController>();
 
   @override
   void onInit() {
@@ -24,127 +28,164 @@ class BudgetController extends GetxController {
   }
 
   Future<void> loadBudgets() async {
-    isLoading.value = true;
-    errorMessage.value = '';
-
     try {
-      final userId = 'user_id';
+      isLoading.value = true;
+      errorMessage.value = '';
+
+      final userId = authController.getCurrentUserId();
+
+      if (userId.isEmpty) {
+        errorMessage.value = 'Người dùng chưa đăng nhập';
+        print(' User chưa đăng nhập, không thể tải ngân sách');
+        SnackbarHelper.showError('Vui lòng đăng nhập để xem ngân sách');
+        return;
+      }
+
+      print(' Đang tải ngân sách cho user: $userId');
+
       await for (final result in _budgetUseCase.getBudgets(userId)) {
         result.fold(
           (failure) {
             errorMessage.value = failure.message;
+            print(' Lỗi tải ngân sách: ${failure.message}');
+            SnackbarHelper.showError(
+                'Không thể tải ngân sách: ${failure.message}');
           },
           (budgetList) {
             budgets.value = budgetList;
+            print(' Đã tải ${budgetList.length} ngân sách');
           },
         );
         break;
       }
     } catch (e) {
       errorMessage.value = 'Lỗi khi tải danh sách ngân sách: $e';
+      print(' Exception trong loadBudgets: $e');
+      SnackbarHelper.showError('Đã xảy ra lỗi hệ thống khi tải ngân sách');
     } finally {
       isLoading.value = false;
     }
   }
 
-  // Load budget overview
   Future<void> loadBudgetOverview() async {
     try {
-      final userId = 'user_id';
+      final userId = authController.getCurrentUserId();
+
+      if (userId.isEmpty) {
+        print(' User chưa đăng nhập, không thể tải overview ngân sách');
+        return;
+      }
+
       final result = await _budgetUseCase.getBudgetOverview(userId);
 
       result.fold(
         (failure) {
           errorMessage.value = failure.message;
+          print(' Lỗi tải overview ngân sách: ${failure.message}');
         },
         (overview) {
           budgetOverview.value = overview;
+          print(' Đã tải overview ngân sách');
         },
       );
     } catch (e) {
       errorMessage.value = 'Lỗi khi tải tổng quan ngân sách: $e';
+      print(' Exception trong loadBudgetOverview: $e');
     }
   }
 
-  // Create new budget
   Future<void> createBudget(BudgetModel budget) async {
     isLoading.value = true;
     errorMessage.value = '';
 
     try {
-      final userId = 'user_id';
+      final userId = authController.getCurrentUserId();
       final result = await _budgetUseCase.createBudget(userId, budget);
 
       result.fold(
         (failure) {
           errorMessage.value = failure.message;
+          SnackbarHelper.showError('Lỗi tạo ngân sách: ${failure.message}');
         },
         (_) {
-          loadBudgets(); // Reload budgets
-          Get.snackbar('Thành công', 'Đã tạo ngân sách mới');
+          loadBudgets();
+          Get.back();
+          Future.delayed(Duration(milliseconds: 300), () {
+            SnackbarHelper.showSuccess('Đã tạo ngân sách thành công');
+          });
         },
       );
     } catch (e) {
       errorMessage.value = 'Lỗi khi tạo ngân sách: $e';
+      SnackbarHelper.showError('Không thể tạo ngân sách');
     } finally {
       isLoading.value = false;
     }
   }
 
-  // Update budget
   Future<void> updateBudget(BudgetModel budget) async {
     isLoading.value = true;
     errorMessage.value = '';
 
     try {
-      final userId = 'user_id';
+      final userId = authController.getCurrentUserId();
       final result = await _budgetUseCase.updateBudget(userId, budget);
 
       result.fold(
         (failure) {
           errorMessage.value = failure.message;
+          SnackbarHelper.showError(
+              'Lỗi cập nhật ngân sách: ${failure.message}');
         },
         (_) {
-          loadBudgets(); // Reload budgets
-          Get.snackbar('Thành công', 'Đã cập nhật ngân sách');
+          final index = budgets.indexWhere((b) => b.id == budget.id);
+          if (index != -1) {
+            budgets[index] = budget;
+          }
+          Get.back();
+          Future.delayed(Duration(milliseconds: 300), () {
+            SnackbarHelper.showSuccess(
+                'Đã cập nhật ngân sách "${budget.name}"');
+          });
         },
       );
     } catch (e) {
       errorMessage.value = 'Lỗi khi cập nhật ngân sách: $e';
+      SnackbarHelper.showError('Không thể cập nhật ngân sách');
     } finally {
       isLoading.value = false;
     }
   }
 
-  // Delete budget
   Future<void> deleteBudget(String budgetId) async {
     isLoading.value = true;
     errorMessage.value = '';
 
     try {
-      final userId = 'user_id';
+      final userId = authController.getCurrentUserId();
       final result = await _budgetUseCase.deleteBudget(userId, budgetId);
 
       result.fold(
         (failure) {
           errorMessage.value = failure.message;
+          SnackbarHelper.showError('Lỗi xóa ngân sách: ${failure.message}');
         },
         (_) {
-          loadBudgets(); // Reload budgets
-          Get.snackbar('Thành công', 'Đã xóa ngân sách');
+          loadBudgets();
+          SnackbarHelper.showSuccess('Đã xóa ngân sách thành công');
         },
       );
     } catch (e) {
       errorMessage.value = 'Lỗi khi xóa ngân sách: $e';
+      SnackbarHelper.showError('Không thể xóa ngân sách');
     } finally {
       isLoading.value = false;
     }
   }
 
-  // Update spent amount
   Future<void> updateSpentAmount(String budgetId, double amount) async {
     try {
-      final userId = 'user_id';
+      final userId = authController.getCurrentUserId();
       final result =
           await _budgetUseCase.updateSpentAmount(userId, budgetId, amount);
 
@@ -153,7 +194,7 @@ class BudgetController extends GetxController {
           errorMessage.value = failure.message;
         },
         (_) {
-          loadBudgets(); // Reload budgets
+          loadBudgets();
         },
       );
     } catch (e) {
@@ -161,10 +202,36 @@ class BudgetController extends GetxController {
     }
   }
 
-  // Get budget report
+  Future<void> resetBudget(String budgetId) async {
+    isLoading.value = true;
+    errorMessage.value = '';
+
+    try {
+      final userId = authController.getCurrentUserId();
+      final result =
+          await _budgetUseCase.updateSpentAmount(userId, budgetId, 0.0);
+
+      result.fold(
+        (failure) {
+          errorMessage.value = failure.message;
+          SnackbarHelper.showError('Lỗi reset ngân sách: ${failure.message}');
+        },
+        (_) {
+          loadBudgets();
+          SnackbarHelper.showSuccess('Đã reset ngân sách về 0');
+        },
+      );
+    } catch (e) {
+      errorMessage.value = 'Lỗi khi reset ngân sách: $e';
+      SnackbarHelper.showError('Không thể reset ngân sách');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<BudgetReportModel?> getBudgetReport(String budgetId) async {
     try {
-      final userId = 'user_id';
+      final userId = authController.getCurrentUserId();
       final result = await _budgetUseCase.getBudgetReport(userId, budgetId);
 
       return result.fold(
@@ -180,14 +247,13 @@ class BudgetController extends GetxController {
     }
   }
 
-  // Create smart budget
   Future<void> createSmartBudget(
       String category, DateTime startDate, DateTime endDate) async {
     isLoading.value = true;
     errorMessage.value = '';
 
     try {
-      final userId = 'user_id';
+      final userId = authController.getCurrentUserId();
       final result = await _budgetUseCase.createSmartBudget(
           userId, category, startDate, endDate);
 
@@ -197,7 +263,6 @@ class BudgetController extends GetxController {
         },
         (budget) {
           loadBudgets();
-          Get.snackbar('Thành công', 'Đã tạo ngân sách thông minh');
         },
       );
     } catch (e) {
@@ -207,13 +272,12 @@ class BudgetController extends GetxController {
     }
   }
 
-  // Auto adjust budget
   Future<void> autoAdjustBudget(String budgetId) async {
     isLoading.value = true;
     errorMessage.value = '';
 
     try {
-      final userId = 'user_id';
+      final userId = authController.getCurrentUserId();
       final result = await _budgetUseCase.autoAdjustBudget(userId, budgetId);
 
       result.fold(
@@ -221,8 +285,8 @@ class BudgetController extends GetxController {
           errorMessage.value = failure.message;
         },
         (budget) {
-          loadBudgets(); // Reload budgets
-          Get.snackbar('Thành công', 'Đã điều chỉnh ngân sách tự động');
+          loadBudgets();
+          SnackbarHelper.showSuccess('Đã điều chỉnh ngân sách tự động');
         },
       );
     } catch (e) {
@@ -232,10 +296,9 @@ class BudgetController extends GetxController {
     }
   }
 
-  // Check budget alerts
   Future<void> checkBudgetAlerts(String budgetId) async {
     try {
-      final userId = 'user_id';
+      final userId = authController.getCurrentUserId();
       final result = await _budgetUseCase.checkBudgetAlerts(userId, budgetId);
 
       result.fold(
@@ -251,9 +314,8 @@ class BudgetController extends GetxController {
     }
   }
 
-  // Get budgets by category
   Stream<List<BudgetModel>> getBudgetsByCategory(String category) {
-    final userId = 'user_id';
+    final userId = authController.getCurrentUserId();
     return _budgetUseCase.getBudgetsByCategory(userId, category).map((result) {
       return result.fold(
         (failure) {
@@ -265,9 +327,8 @@ class BudgetController extends GetxController {
     });
   }
 
-  // Get budgets by period
   Stream<List<BudgetModel>> getBudgetsByPeriod(String period) {
-    final userId = 'user_id';
+    final userId = authController.getCurrentUserId();
     return _budgetUseCase.getBudgetsByPeriod(userId, period).map((result) {
       return result.fold(
         (failure) {
@@ -279,13 +340,12 @@ class BudgetController extends GetxController {
     });
   }
 
-  // Create budget from template
   Future<void> createBudgetFromTemplate(String templateName) async {
     isLoading.value = true;
     errorMessage.value = '';
 
     try {
-      final userId = 'user_id';
+      final userId = authController.getCurrentUserId();
       final result =
           await _budgetUseCase.createBudgetFromTemplate(userId, templateName);
 
@@ -294,8 +354,8 @@ class BudgetController extends GetxController {
           errorMessage.value = failure.message;
         },
         (budget) {
-          loadBudgets(); // Reload budgets
-          Get.snackbar('Thành công', 'Đã tạo ngân sách từ template');
+          loadBudgets();
+          SnackbarHelper.showSuccess('Đã tạo ngân sách từ template');
         },
       );
     } catch (e) {
@@ -305,13 +365,12 @@ class BudgetController extends GetxController {
     }
   }
 
-  // Duplicate budget
   Future<void> duplicateBudget(String budgetId, DateTime newStartDate) async {
     isLoading.value = true;
     errorMessage.value = '';
 
     try {
-      final userId = 'user_id';
+      final userId = authController.getCurrentUserId();
       final result =
           await _budgetUseCase.duplicateBudget(userId, budgetId, newStartDate);
 
@@ -320,8 +379,8 @@ class BudgetController extends GetxController {
           errorMessage.value = failure.message;
         },
         (budget) {
-          loadBudgets(); // Reload budgets
-          Get.snackbar('Thành công', 'Đã sao chép ngân sách');
+          loadBudgets();
+          SnackbarHelper.showSuccess('Đã sao chép ngân sách');
         },
       );
     } catch (e) {
@@ -331,30 +390,79 @@ class BudgetController extends GetxController {
     }
   }
 
-  // Export budget report
-  Future<String?> exportBudgetReport(String budgetId, String format) async {
+  Future<void> exportBudgetReport(String budgetId,
+      {String format = 'pdf'}) async {
     try {
-      final userId = 'user_id';
-      final result =
-          await _budgetUseCase.exportBudgetReport(userId, budgetId, format);
+      BudgetModel? budget;
+      for (var b in budgets) {
+        if (b.id == budgetId) {
+          budget = b;
+          break;
+        }
+      }
+      if (budget == null) {
+        SnackbarHelper.showError('Không tìm thấy ngân sách');
+        return;
+      }
 
-      return result.fold(
-        (failure) {
-          errorMessage.value = failure.message;
-          return null;
-        },
-        (reportPath) => reportPath,
+      final fileExportService = Get.find<FileExportService>();
+      await fileExportService.showExportOptionsDialog(
+        budget: budget,
+        availableFormats: ['pdf', 'excel', 'csv'],
       );
     } catch (e) {
-      errorMessage.value = 'Lỗi khi xuất báo cáo: $e';
+      SnackbarHelper.showInfo('Đang chuyển sang chia sẻ text...');
+      BudgetModel? budget;
+      for (var b in budgets) {
+        if (b.id == budgetId) {
+          budget = b;
+          break;
+        }
+      }
+      if (budget != null) {
+        try {
+          final fileExportService = Get.find<FileExportService>();
+          await fileExportService.fallbackToTextShare(budget);
+        } catch (fallbackError) {
+          SnackbarHelper.showError('Không thể export báo cáo: $e');
+        }
+      }
+    }
+  }
+
+  Future<String?> exportBudgetReportDirect(
+    String budgetId,
+    String format, {
+    bool autoShare = true,
+  }) async {
+    try {
+      BudgetModel? budget;
+      for (var b in budgets) {
+        if (b.id == budgetId) {
+          budget = b;
+          break;
+        }
+      }
+      if (budget == null) {
+        SnackbarHelper.showError('Không tìm thấy ngân sách');
+        return null;
+      }
+
+      final fileExportService = Get.find<FileExportService>();
+      return await fileExportService.exportBudgetReport(
+        budget: budget,
+        format: format,
+        autoShare: autoShare,
+      );
+    } catch (e) {
+      SnackbarHelper.showError('Không thể export báo cáo: $e');
       return null;
     }
   }
 
-  // Sync budget with expenses
   Future<void> syncBudgetWithExpenses(String budgetId) async {
     try {
-      final userId = 'user_id';
+      final userId = authController.getCurrentUserId();
       final result =
           await _budgetUseCase.syncBudgetWithExpenses(userId, budgetId);
 
@@ -363,8 +471,8 @@ class BudgetController extends GetxController {
           errorMessage.value = failure.message;
         },
         (_) {
-          loadBudgets(); // Reload budgets
-          Get.snackbar('Thành công', 'Đã đồng bộ ngân sách với chi tiêu');
+          loadBudgets();
+          SnackbarHelper.showSuccess('Đã đồng bộ ngân sách với chi tiêu');
         },
       );
     } catch (e) {
@@ -372,10 +480,9 @@ class BudgetController extends GetxController {
     }
   }
 
-  // Get budget suggestions
   Future<List<String>> getBudgetSuggestions() async {
     try {
-      final userId = 'user_id';
+      final userId = authController.getCurrentUserId();
       final result = await _budgetUseCase.getBudgetSuggestions(userId);
 
       return result.fold(
@@ -391,17 +498,14 @@ class BudgetController extends GetxController {
     }
   }
 
-  // Select budget
   void selectBudget(BudgetModel budget) {
     selectedBudget.value = budget;
   }
 
-  // Clear selected budget
   void clearSelectedBudget() {
     selectedBudget.value = null;
   }
 
-  // Get budget by ID
   BudgetModel? getBudgetById(String budgetId) {
     try {
       return budgets.firstWhere((budget) => budget.id == budgetId);
@@ -410,12 +514,10 @@ class BudgetController extends GetxController {
     }
   }
 
-  // Get active budgets
   List<BudgetModel> get activeBudgets {
     return budgets.where((budget) => budget.isActive).toList();
   }
 
-  // Get budgets near limit (80% or more)
   List<BudgetModel> get budgetsNearLimit {
     return budgets.where((budget) {
       final usagePercentage =
@@ -424,29 +526,24 @@ class BudgetController extends GetxController {
     }).toList();
   }
 
-  // Get over budget budgets
   List<BudgetModel> get overBudgetBudgets {
     return budgets
         .where((budget) => budget.spentAmount > budget.amount)
         .toList();
   }
 
-  // Get total budget amount
   double get totalBudgetAmount {
     return budgets.fold(0.0, (sum, budget) => sum + budget.amount);
   }
 
-  // Get total spent amount
   double get totalSpentAmount {
     return budgets.fold(0.0, (sum, budget) => sum + budget.spentAmount);
   }
 
-  // Get total remaining amount
   double get totalRemainingAmount {
     return totalBudgetAmount - totalSpentAmount;
   }
 
-  // Get overall usage percentage
   double get overallUsagePercentage {
     return totalBudgetAmount > 0
         ? (totalSpentAmount / totalBudgetAmount) * 100

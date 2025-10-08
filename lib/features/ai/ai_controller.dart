@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:task_expense_manager/features/expense/presentation/controllers/expense_controller.dart';
 import 'package:task_expense_manager/features/task/presentation/controllers/task_controller.dart';
+import 'package:task_expense_manager/features/budget/presentation/controllers/budget_controller.dart';
 import '../../core/services/ai_service.dart';
+import '../../core/utils/snackbar_helper.dart';
+import 'models/chat_message.dart';
 
 class AIController extends GetxController {
   late final AIService _aiService;
   late final TaskController _taskController;
   late final ExpenseController _expenseController;
+  late final BudgetController _budgetController;
 
   final RxString expenseAnalysis = ''.obs;
   final RxString taskAnalysis = ''.obs;
@@ -20,6 +24,11 @@ class AIController extends GetxController {
 
   final RxBool isInitialized = false.obs;
   final RxMap<String, dynamic> predictiveData = <String, dynamic>{}.obs;
+
+  final RxList<ChatMessage> chatMessages = <ChatMessage>[].obs;
+  final RxBool isChatLoading = false.obs;
+  final TextEditingController chatTextController = TextEditingController();
+  final ScrollController chatScrollController = ScrollController();
 
   @override
   void onInit() {
@@ -34,18 +43,26 @@ class AIController extends GetxController {
       _aiService = Get.find<AIService>();
       _taskController = Get.find<TaskController>();
       _expenseController = Get.find<ExpenseController>();
+      _budgetController = Get.find<BudgetController>();
+
+      // Set controllers for AI service to access user data
+      _aiService.setControllers(
+        taskController: _taskController,
+        expenseController: _expenseController,
+        budgetController: _budgetController,
+      );
 
       isInitialized.value = true;
-      print('✅ AIController initialized successfully');
 
       _generateDailySuggestions();
+      _initializeChat();
     } catch (e) {
       print('❌ Lỗi khởi tạo AIController: $e');
       isInitialized.value = false;
 
       Future.delayed(Duration(milliseconds: 500), () {
         if (Get.context != null) {
-          Get.snackbar('Thông báo', 'AI Service đang được khởi tạo...');
+          SnackbarHelper.showInfo('AI Service đang được khởi tạo...');
         }
       });
     }
@@ -63,11 +80,7 @@ class AIController extends GetxController {
           await _aiService.analyzeExpenses(_expenseController.expenses);
       expenseAnalysis.value = analysis;
 
-      Get.snackbar(
-        'Thành công',
-        'Đã hoàn thành phân tích chi tiêu',
-        duration: Duration(seconds: 2),
-      );
+      SnackbarHelper.showSuccess('Đã hoàn thành phân tích chi tiêu');
     } catch (e) {
       _showError('Không thể phân tích chi tiêu: $e');
     } finally {
@@ -86,11 +99,7 @@ class AIController extends GetxController {
       final analysis = await _aiService.analyzeTasks(_taskController.tasks);
       taskAnalysis.value = analysis;
 
-      Get.snackbar(
-        'Thành công',
-        'Đã hoàn thành phân tích công việc',
-        duration: Duration(seconds: 2),
-      );
+      SnackbarHelper.showSuccess('Đã hoàn thành phân tích công việc');
     } catch (e) {
       _showError('Không thể phân tích công việc: $e');
     } finally {
@@ -112,11 +121,7 @@ class AIController extends GetxController {
       );
       smartSuggestions.value = suggestions;
 
-      Get.snackbar(
-        'Cập nhật',
-        'Đã tạo gợi ý mới từ AI',
-        duration: Duration(seconds: 2),
-      );
+      SnackbarHelper.showInfo('Đã tạo gợi ý mới từ AI');
     } catch (e) {
       _showError('Không thể tạo gợi ý: $e');
     } finally {
@@ -138,11 +143,7 @@ class AIController extends GetxController {
       );
       predictiveData.value = analysis;
 
-      Get.snackbar(
-        'Hoàn thành',
-        'Đã phân tích xu hướng và dự đoán',
-        duration: Duration(seconds: 2),
-      );
+      SnackbarHelper.showSuccess('Đã phân tích xu hướng và dự đoán');
     } catch (e) {
       _showError('Không thể phân tích dự đoán: $e');
     } finally {
@@ -179,28 +180,98 @@ class AIController extends GetxController {
   }
 
   void _showError(String message) {
-    Future.delayed(Duration(milliseconds: 100), () {
-      if (Get.context != null) {
-        Get.snackbar(
-          'Lỗi',
-          message,
-          backgroundColor: Colors.red.withOpacity(0.8),
-          colorText: Colors.white,
+    SnackbarHelper.showError(message);
+  }
+
+  void _showInitializationError() {
+    SnackbarHelper.showInfo('AI Service đang được khởi tạo, vui lòng đợi...');
+  }
+
+  void _initializeChat() {
+    chatMessages.add(ChatMessage.ai(
+      "🤖 Xin chào! Tôi là AI Assistant thông minh của bạn!\n\n"
+      "Tôi có thể giúp bạn:\n"
+      "💰 Phân tích chi tiêu dựa trên dữ liệu thực của bạn\n"
+      "⚡ Quản lý công việc hiệu quả theo lịch trình\n"
+      "🎯 Theo dõi ngân sách và đưa ra gợi ý tiết kiệm\n"
+      "📊 Dự đoán xu hướng tài chính cá nhân\n"
+      "💬 Trả lời câu hỏi dựa trên ngữ cảnh của bạn\n\n"
+      "Tôi đã truy cập được dữ liệu task, chi tiêu và ngân sách của bạn để đưa ra lời khuyên chính xác. Bạn muốn tôi hỗ trợ gì hôm nay?",
+    ));
+  }
+
+  Future<void> sendChatMessage(String message) async {
+    if (message.trim().isEmpty) return;
+
+    chatMessages.add(ChatMessage.user(message.trim()));
+
+    chatTextController.clear();
+    _scrollToBottom();
+
+    isChatLoading.value = true;
+    final typingMessage = ChatMessage.typing();
+    chatMessages.add(typingMessage);
+    _scrollToBottom();
+
+    try {
+      final response = await _aiService.getChatResponse(message.trim());
+
+      chatMessages.removeWhere((msg) => msg.type == MessageType.typing);
+
+      final aiMessage =
+          response.isNotEmpty ? response : _getDefaultResponse(message);
+      chatMessages.add(ChatMessage.ai(aiMessage));
+    } catch (e) {
+      print('❌ Lỗi chat: $e');
+      chatMessages.removeWhere((msg) => msg.type == MessageType.typing);
+
+      chatMessages.add(ChatMessage.ai(_getDefaultResponse(message)));
+    }
+
+    isChatLoading.value = false;
+    _scrollToBottom();
+  }
+
+  String _getDefaultResponse(String message) {
+    final lowercaseMessage = message.toLowerCase();
+
+    if (lowercaseMessage.contains('xin chào') ||
+        lowercaseMessage.contains('hello') ||
+        lowercaseMessage.contains('hi')) {
+      return "🤖 Xin chào! Tôi là AI Assistant của bạn!\n\n"
+          "Tôi có thể giúp bạn quản lý tài chính và công việc thông minh.\n"
+          "Hôm nay tôi có thể hỗ trợ gì cho bạn?";
+    }
+
+    return "🤔 Xin lỗi, tôi đang gặp sự cố kỹ thuật tạm thời!\n\n"
+        "Vui lòng thử lại sau hoặc mô tả chi tiết hơn về những gì bạn cần hỗ trợ.\n\n"
+        "💡 Tôi có thể giúp bạn:\n"
+        "• Phân tích chi tiêu và đưa ra gợi ý tiết kiệm\n"
+        "• Quản lý công việc hiệu quả\n"
+        "• Dự đoán xu hướng tài chính";
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (chatScrollController.hasClients) {
+        chatScrollController.animateTo(
+          chatScrollController.position.maxScrollExtent,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeOut,
         );
       }
     });
   }
 
-  void _showInitializationError() {
-    Future.delayed(Duration(milliseconds: 100), () {
-      if (Get.context != null) {
-        Get.snackbar(
-          'Thông báo',
-          'AI Service đang được khởi tạo, vui lòng đợi...',
-          backgroundColor: Colors.orange.withOpacity(0.8),
-          colorText: Colors.white,
-        );
-      }
-    });
+  void clearChat() {
+    chatMessages.clear();
+    _initializeChat();
+  }
+
+  @override
+  void onClose() {
+    chatTextController.dispose();
+    chatScrollController.dispose();
+    super.onClose();
   }
 }

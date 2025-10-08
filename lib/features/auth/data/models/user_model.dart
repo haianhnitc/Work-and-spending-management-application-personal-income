@@ -9,6 +9,7 @@ class UserModel with _$UserModel {
     required String uid,
     required String email,
     String? name,
+    String? avatarUrl,
   }) = _UserModel;
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>

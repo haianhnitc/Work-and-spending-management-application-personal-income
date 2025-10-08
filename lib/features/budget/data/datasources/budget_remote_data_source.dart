@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:injectable/injectable.dart';
+import 'package:task_expense_manager/core/constants/firebase_config.dart';
 import '../models/budget_model.dart';
 
 class _CategorySpendingData {
@@ -30,8 +31,6 @@ abstract class BudgetRemoteDataSource {
       String userId, String templateName);
   Future<BudgetModel> duplicateBudget(
       String userId, String budgetId, DateTime newStartDate);
-  Future<String> exportBudgetReport(
-      String userId, String budgetId, String format);
   Future<void> syncBudgetWithExpenses(String userId, String budgetId);
   Future<List<String>> getBudgetSuggestions(String userId);
 }
@@ -45,7 +44,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     return _firestore
         .collection('users')
         .doc(userId)
-        .collection('budgets')
+        .collection(FirebaseConfig.budgetsCollection)
         .where('isActive', isEqualTo: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
@@ -58,7 +57,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     final doc = await _firestore
         .collection('users')
         .doc(userId)
-        .collection('budgets')
+        .collection(FirebaseConfig.budgetsCollection)
         .doc(budgetId)
         .get();
 
@@ -73,7 +72,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     await _firestore
         .collection('users')
         .doc(userId)
-        .collection('budgets')
+        .collection(FirebaseConfig.budgetsCollection)
         .doc(budget.id)
         .set(budget.toFirestore());
   }
@@ -83,7 +82,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     await _firestore
         .collection('users')
         .doc(userId)
-        .collection('budgets')
+        .collection(FirebaseConfig.budgetsCollection)
         .doc(budget.id)
         .update(budget.toFirestore());
   }
@@ -93,7 +92,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     await _firestore
         .collection('users')
         .doc(userId)
-        .collection('budgets')
+        .collection(FirebaseConfig.budgetsCollection)
         .doc(budgetId)
         .delete();
   }
@@ -104,7 +103,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     await _firestore
         .collection('users')
         .doc(userId)
-        .collection('budgets')
+        .collection(FirebaseConfig.budgetsCollection)
         .doc(budgetId)
         .update({
       'spentAmount': amount,
@@ -258,7 +257,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     final historicalBudgets = await _firestore
         .collection('users')
         .doc(userId)
-        .collection('budgets')
+        .collection(FirebaseConfig.budgetsCollection)
         .where('category', isEqualTo: budget.category)
         .where('isActive', isEqualTo: false)
         .orderBy('createdAt', descending: true)
@@ -348,7 +347,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     return _firestore
         .collection('users')
         .doc(userId)
-        .collection('budgets')
+        .collection(FirebaseConfig.budgetsCollection)
         .where('category', isEqualTo: category)
         .where('isActive', isEqualTo: true)
         .snapshots()
@@ -362,7 +361,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     return _firestore
         .collection('users')
         .doc(userId)
-        .collection('budgets')
+        .collection(FirebaseConfig.budgetsCollection)
         .where('period', isEqualTo: period)
         .where('isActive', isEqualTo: true)
         .snapshots()
@@ -376,7 +375,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     final budgets = await _firestore
         .collection('users')
         .doc(userId)
-        .collection('budgets')
+        .collection(FirebaseConfig.budgetsCollection)
         .where('isActive', isEqualTo: true)
         .get();
 
@@ -537,13 +536,6 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
   }
 
   @override
-  Future<String> exportBudgetReport(
-      String userId, String budgetId, String format) async {
-    await getBudgetReport(userId, budgetId);
-    return 'Budget_Report_${budgetId}_${DateTime.now().millisecondsSinceEpoch}.$format';
-  }
-
-  @override
   Future<void> syncBudgetWithExpenses(String userId, String budgetId) async {
     final budget = await getBudgetById(userId, budgetId);
     if (budget == null) {
@@ -585,7 +577,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     final budgetsSnapshot = await _firestore
         .collection('users')
         .doc(userId)
-        .collection('budgets')
+        .collection(FirebaseConfig.budgetsCollection)
         .where('isActive', isEqualTo: true)
         .get();
 

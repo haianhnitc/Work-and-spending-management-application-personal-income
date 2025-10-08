@@ -1,23 +1,22 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../constants/app_enums.dart';
 
-// Common chart selector widget
 class ChartSelector extends StatelessWidget {
   final ChartType selectedChartType;
   final Function(ChartType) onChartTypeChanged;
   final bool isTablet;
 
   const ChartSelector({
-    Key? key,
+    super.key,
     required this.selectedChartType,
     required this.onChartTypeChanged,
     this.isTablet = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 50,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -72,7 +71,6 @@ class ChartSelector extends StatelessWidget {
   }
 }
 
-// Expense Pie Chart (double values)
 class CustomPieChart extends StatelessWidget {
   final Map<String, double> categoryTotals;
   final bool isTablet;
@@ -142,60 +140,63 @@ class CustomPieChart extends StatelessWidget {
     }
 
     final total = categoryTotals.values.fold(0.0, (a, b) => a + b);
+    final validEntries =
+        categoryTotals.entries.where((entry) => entry.value > 0).toList();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: categoryTotals.entries
-          .where((entry) => entry.value > 0)
-          .map((entry) => Padding(
-                padding: EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 16,
-                      height: 16,
-                      decoration: BoxDecoration(
-                        color: getCategoryColorByName(entry.key),
-                        shape: BoxShape.circle,
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: validEntries
+            .map((entry) => Padding(
+                  padding: EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 16,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: getCategoryColorByName(entry.key),
+                          shape: BoxShape.circle,
+                        ),
                       ),
-                    ),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(categoryToString(entry.key),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    fontSize: isTablet ? 12 : 10,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis),
-                          Text(
-                              '${(entry.value / total * 100).toStringAsFixed(1)}%',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    fontSize: isTablet ? 10 : 9,
-                                    color: Colors.grey[600],
-                                  )),
-                        ],
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(categoryToString(entry.key),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      fontSize: isTablet ? 12 : 10,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis),
+                            Text(
+                                '${(entry.value / total * 100).toStringAsFixed(1)}%',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      fontSize: isTablet ? 10 : 9,
+                                      color: Colors.grey[600],
+                                    )),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ))
-          .toList(),
+                    ],
+                  ),
+                ))
+            .toList(),
+      ),
     );
   }
 }
 
-// Task Pie Chart (int values)
 class CustomTaskPieChart extends StatelessWidget {
   final Map<String, int> categoryTotals;
   final bool isTablet;
@@ -250,55 +251,61 @@ class CustomTaskPieChart extends StatelessWidget {
 
   Widget _buildTaskLegend(
       BuildContext context, Map<String, int> categoryTotals, bool isTablet) {
-    if (categoryTotals.isEmpty)
+    if (categoryTotals.isEmpty) {
       return Center(
           child: Text('Không có dữ liệu',
               style: Theme.of(context).textTheme.bodySmall));
+    }
+
     final total = categoryTotals.values.fold(0, (a, b) => a + b);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: categoryTotals.entries
-          .where((entry) => entry.value > 0)
-          .map((entry) => Padding(
-                padding: EdgeInsets.symmetric(vertical: 4),
-                child: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Container(
-                      width: 16,
-                      height: 16,
-                      decoration: BoxDecoration(
-                          color: getCategoryColorByName(entry.key),
-                          shape: BoxShape.circle)),
-                  SizedBox(width: 8),
-                  Expanded(
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                        Text(categoryToString(entry.key),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                    fontSize: isTablet ? 12 : 10,
-                                    fontWeight: FontWeight.w500),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis),
-                        Text(
-                            '${(entry.value / total * 100).toStringAsFixed(1)}%',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(
-                                    fontSize: isTablet ? 10 : 9,
-                                    color: Colors.grey[600])),
-                      ])),
-                ]),
-              ))
-          .toList(),
+    final validEntries =
+        categoryTotals.entries.where((entry) => entry.value > 0).toList();
+
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: validEntries
+            .map((entry) => Padding(
+                  padding: EdgeInsets.symmetric(vertical: 4),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Container(
+                        width: 16,
+                        height: 16,
+                        decoration: BoxDecoration(
+                            color: getCategoryColorByName(entry.key),
+                            shape: BoxShape.circle)),
+                    SizedBox(width: 8),
+                    Expanded(
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                          Text(categoryToString(entry.key),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                      fontSize: isTablet ? 12 : 10,
+                                      fontWeight: FontWeight.w500),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis),
+                          Text(
+                              '${(entry.value / total * 100).toStringAsFixed(1)}%',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                      fontSize: isTablet ? 10 : 9,
+                                      color: Colors.grey[600])),
+                        ])),
+                  ]),
+                ))
+            .toList(),
+      ),
     );
   }
 }
 
-// Expense Bar Chart
 class CustomBarChart extends StatelessWidget {
   final Map<String, double> categoryTotals;
   final bool isTablet;
@@ -309,10 +316,11 @@ class CustomBarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (categoryTotals.isEmpty)
+    if (categoryTotals.isEmpty) {
       return Center(
           child: Text('Không có dữ liệu',
               style: Theme.of(context).textTheme.bodyMedium));
+    }
 
     final entries =
         categoryTotals.entries.where((entry) => entry.value > 0).toList();
@@ -377,7 +385,6 @@ class CustomBarChart extends StatelessWidget {
   }
 }
 
-// Task Bar Chart
 class CustomTaskBarChart extends StatelessWidget {
   final Map<String, int> categoryTotals;
   final bool isTablet;
@@ -388,10 +395,11 @@ class CustomTaskBarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (categoryTotals.isEmpty)
+    if (categoryTotals.isEmpty) {
       return Center(
           child: Text('Không có dữ liệu',
               style: Theme.of(context).textTheme.bodyMedium));
+    }
 
     final entries =
         categoryTotals.entries.where((entry) => entry.value > 0).toList();
@@ -455,7 +463,6 @@ class CustomTaskBarChart extends StatelessWidget {
   }
 }
 
-// Expense Line Chart
 class CustomLineChart extends StatelessWidget {
   final Map<String, double> categoryTotals;
   final bool isTablet;
@@ -466,10 +473,11 @@ class CustomLineChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (categoryTotals.isEmpty)
+    if (categoryTotals.isEmpty) {
       return Center(
           child: Text('Không có dữ liệu',
               style: Theme.of(context).textTheme.bodyMedium));
+    }
 
     final entries =
         categoryTotals.entries.where((entry) => entry.value > 0).toList();
@@ -550,7 +558,6 @@ class CustomLineChart extends StatelessWidget {
   }
 }
 
-// Task Line Chart
 class CustomTaskLineChart extends StatelessWidget {
   final Map<String, int> categoryTotals;
   final bool isTablet;
@@ -561,10 +568,11 @@ class CustomTaskLineChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (categoryTotals.isEmpty)
+    if (categoryTotals.isEmpty) {
       return Center(
           child: Text('Không có dữ liệu',
               style: Theme.of(context).textTheme.bodyMedium));
+    }
 
     final entries =
         categoryTotals.entries.where((entry) => entry.value > 0).toList();
