@@ -23,12 +23,6 @@ abstract class BudgetRepository {
       String userId, String budgetId);
 
   // Tạo ngân sách thông minh dựa trên lịch sử
-  Future<Either<Failure, BudgetModel>> createSmartBudget(
-      String userId, String category, DateTime startDate, DateTime endDate);
-
-  // Điều chỉnh ngân sách tự động
-  Future<Either<Failure, BudgetModel>> autoAdjustBudget(
-      String userId, String budgetId);
 
   // Kiểm tra cảnh báo ngân sách
   Future<Either<Failure, List<BudgetAlertModel>>> checkBudgetAlerts(
@@ -55,8 +49,6 @@ abstract class BudgetRepository {
       String userId, String budgetId, DateTime newStartDate);
 
   // Đồng bộ ngân sách với chi tiêu
-  Future<Either<Failure, void>> syncBudgetWithExpenses(
-      String userId, String budgetId);
 
   // Lấy gợi ý ngân sách
   Future<Either<Failure, List<String>>> getBudgetSuggestions(String userId);

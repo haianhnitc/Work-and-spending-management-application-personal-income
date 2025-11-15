@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_enums.dart';
-import '../../../../core/widgets/common_app_bar.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../task/presentation/controllers/task_controller.dart';
 import '../../data/models/expense_model.dart';
@@ -51,15 +50,29 @@ class CreateExpenseScreen extends StatelessWidget {
     final isTablet = MediaQuery.of(context).size.width > 600;
 
     return Obx(() => Scaffold(
-          appBar: CommonAppBar(
-            title: expense == null
-                ? (_incomeType.value == IncomeType.none
-                    ? 'Tạo chi tiêu'
-                    : 'Tạo thu nhập')
-                : (_incomeType.value == IncomeType.none
-                    ? 'Sửa chi tiêu'
-                    : 'Sửa thu nhập'),
-            type: AppBarType.modal,
+          appBar: AppBar(
+            leading: Builder(builder: (context) {
+              final bg = Theme.of(context).primaryColor;
+              final iconColor =
+                  bg.computeLuminance() > 0.5 ? Colors.black87 : Colors.white;
+              return IconButton(
+                icon: Icon(Icons.arrow_back_ios_new_rounded, color: iconColor),
+                onPressed: () => Navigator.of(context).pop(),
+              );
+            }),
+            title: Text(
+              expense == null
+                  ? (_incomeType.value == IncomeType.none
+                      ? 'Tạo chi tiêu'
+                      : 'Tạo thu nhập')
+                  : (_incomeType.value == IncomeType.none
+                      ? 'Sửa chi tiêu'
+                      : 'Sửa thu nhập'),
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            backgroundColor: Theme.of(context).primaryColor,
+            elevation: 0,
           ),
           body: Padding(
             padding: EdgeInsets.all(isTablet ? 24 : 16),

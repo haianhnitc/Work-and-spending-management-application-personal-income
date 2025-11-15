@@ -247,55 +247,6 @@ class BudgetController extends GetxController {
     }
   }
 
-  Future<void> createSmartBudget(
-      String category, DateTime startDate, DateTime endDate) async {
-    isLoading.value = true;
-    errorMessage.value = '';
-
-    try {
-      final userId = authController.getCurrentUserId();
-      final result = await _budgetUseCase.createSmartBudget(
-          userId, category, startDate, endDate);
-
-      result.fold(
-        (failure) {
-          errorMessage.value = failure.message;
-        },
-        (budget) {
-          loadBudgets();
-        },
-      );
-    } catch (e) {
-      errorMessage.value = 'Lỗi khi tạo ngân sách thông minh: $e';
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
-  Future<void> autoAdjustBudget(String budgetId) async {
-    isLoading.value = true;
-    errorMessage.value = '';
-
-    try {
-      final userId = authController.getCurrentUserId();
-      final result = await _budgetUseCase.autoAdjustBudget(userId, budgetId);
-
-      result.fold(
-        (failure) {
-          errorMessage.value = failure.message;
-        },
-        (budget) {
-          loadBudgets();
-          SnackbarHelper.showSuccess('Đã điều chỉnh ngân sách tự động');
-        },
-      );
-    } catch (e) {
-      errorMessage.value = 'Lỗi khi điều chỉnh ngân sách: $e';
-    } finally {
-      isLoading.value = false;
-    }
-  }
-
   Future<void> checkBudgetAlerts(String budgetId) async {
     try {
       final userId = authController.getCurrentUserId();
@@ -457,44 +408,6 @@ class BudgetController extends GetxController {
     } catch (e) {
       SnackbarHelper.showError('Không thể export báo cáo: $e');
       return null;
-    }
-  }
-
-  Future<void> syncBudgetWithExpenses(String budgetId) async {
-    try {
-      final userId = authController.getCurrentUserId();
-      final result =
-          await _budgetUseCase.syncBudgetWithExpenses(userId, budgetId);
-
-      result.fold(
-        (failure) {
-          errorMessage.value = failure.message;
-        },
-        (_) {
-          loadBudgets();
-          SnackbarHelper.showSuccess('Đã đồng bộ ngân sách với chi tiêu');
-        },
-      );
-    } catch (e) {
-      errorMessage.value = 'Lỗi khi đồng bộ ngân sách: $e';
-    }
-  }
-
-  Future<List<String>> getBudgetSuggestions() async {
-    try {
-      final userId = authController.getCurrentUserId();
-      final result = await _budgetUseCase.getBudgetSuggestions(userId);
-
-      return result.fold(
-        (failure) {
-          errorMessage.value = failure.message;
-          return <String>[];
-        },
-        (suggestions) => suggestions,
-      );
-    } catch (e) {
-      errorMessage.value = 'Lỗi khi lấy gợi ý ngân sách: $e';
-      return <String>[];
     }
   }
 

@@ -92,29 +92,6 @@ class BudgetRepositoryImpl implements BudgetRepository {
   }
 
   @override
-  Future<Either<Failure, BudgetModel>> createSmartBudget(String userId,
-      String category, DateTime startDate, DateTime endDate) async {
-    try {
-      final budget = await _remoteDataSource.createSmartBudget(
-          userId, category, startDate, endDate);
-      return Right(budget);
-    } catch (e) {
-      return Left(Failure(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, BudgetModel>> autoAdjustBudget(
-      String userId, String budgetId) async {
-    try {
-      final budget = await _remoteDataSource.autoAdjustBudget(userId, budgetId);
-      return Right(budget);
-    } catch (e) {
-      return Left(Failure(e.toString()));
-    }
-  }
-
-  @override
   Future<Either<Failure, List<BudgetAlertModel>>> checkBudgetAlerts(
       String userId, String budgetId) async {
     try {
@@ -182,17 +159,6 @@ class BudgetRepositoryImpl implements BudgetRepository {
       final budget = await _remoteDataSource.duplicateBudget(
           userId, budgetId, newStartDate);
       return Right(budget);
-    } catch (e) {
-      return Left(Failure(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, void>> syncBudgetWithExpenses(
-      String userId, String budgetId) async {
-    try {
-      await _remoteDataSource.syncBudgetWithExpenses(userId, budgetId);
-      return const Right(null);
     } catch (e) {
       return Left(Failure(e.toString()));
     }

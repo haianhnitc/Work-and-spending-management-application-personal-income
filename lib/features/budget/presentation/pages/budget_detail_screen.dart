@@ -18,25 +18,35 @@ class BudgetDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isTablet = MediaQuery.of(context).size.width > 600;
+    final appBarBg = Theme.of(context).primaryColor;
+    final appBarIconColor =
+        appBarBg.computeLuminance() > 0.5 ? Colors.black87 : Colors.white;
 
     return Scaffold(
       appBar: AppBar(
+        leading: Builder(builder: (context) {
+          return IconButton(
+            icon:
+                Icon(Icons.arrow_back_ios_new_rounded, color: appBarIconColor),
+            onPressed: () => Navigator.of(context).pop(),
+          );
+        }),
         title: Text(
           budget.name,
           style: TextStyle(
-            color: Colors.white,
+            color: appBarIconColor,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: appBarBg,
         elevation: 0,
         actions: [
           IconButton(
-            icon: Icon(Icons.edit, color: Colors.white),
+            icon: Icon(Icons.edit, color: appBarIconColor),
             onPressed: () => _editBudget(context),
           ),
           IconButton(
-            icon: Icon(Icons.delete, color: Colors.white),
+            icon: Icon(Icons.delete, color: appBarIconColor),
             onPressed: () => _deleteBudget(context),
           ),
         ],
@@ -354,35 +364,6 @@ class BudgetDetailScreen extends StatelessWidget {
               ],
             ),
             SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () =>
-                        _budgetController.autoAdjustBudget(budget.id),
-                    icon: Icon(Icons.auto_fix_high),
-                    label: Text('Tự Động Điều Chỉnh'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ),
-                SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () =>
-                        _budgetController.syncBudgetWithExpenses(budget.id),
-                    icon: Icon(Icons.sync),
-                    label: Text('Đồng Bộ'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
             Row(
               children: [
                 Expanded(

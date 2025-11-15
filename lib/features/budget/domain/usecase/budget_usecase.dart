@@ -43,16 +43,6 @@ class BudgetUseCase {
     return _repository.getBudgetReport(userId, budgetId);
   }
 
-  Future<Either<Failure, BudgetModel>> createSmartBudget(
-      String userId, String category, DateTime startDate, DateTime endDate) {
-    return _repository.createSmartBudget(userId, category, startDate, endDate);
-  }
-
-  Future<Either<Failure, BudgetModel>> autoAdjustBudget(
-      String userId, String budgetId) {
-    return _repository.autoAdjustBudget(userId, budgetId);
-  }
-
   Future<Either<Failure, List<BudgetAlertModel>>> checkBudgetAlerts(
       String userId, String budgetId) {
     return _repository.checkBudgetAlerts(userId, budgetId);
@@ -81,11 +71,6 @@ class BudgetUseCase {
   Future<Either<Failure, BudgetModel>> duplicateBudget(
       String userId, String budgetId, DateTime newStartDate) {
     return _repository.duplicateBudget(userId, budgetId, newStartDate);
-  }
-
-  Future<Either<Failure, void>> syncBudgetWithExpenses(
-      String userId, String budgetId) {
-    return _repository.syncBudgetWithExpenses(userId, budgetId);
   }
 
   Future<Either<Failure, List<String>>> getBudgetSuggestions(String userId) {

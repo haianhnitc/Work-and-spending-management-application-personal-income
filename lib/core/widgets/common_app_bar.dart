@@ -125,7 +125,8 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
           isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       leading: leading ?? _buildModalLeading(context, isTablet),
       title: _buildTitle(context, isTablet, isDesktop),
-      actions: _buildModalActions(context, isTablet),
+      actions: _buildModalActions(context, isTablet,
+          (leading ?? _buildModalLeading(context, isTablet)) != null),
       bottom: bottom,
       toolbarHeight: _getToolbarHeight(isTablet, isDesktop),
       shape: RoundedRectangleBorder(
@@ -209,6 +210,12 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     final iconSize = isTablet ? 28.0 : 24.0;
     final isPrimaryAppBar = type == AppBarType.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final leadingIconColor = isPrimaryAppBar
+        ? Colors.white
+        : (isDark
+            ? Theme.of(context).colorScheme.onSurface
+            : const Color(0xFF0F172A));
 
     return Container(
       margin: EdgeInsets.only(
@@ -254,9 +261,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
             child: Icon(
               Icons.arrow_back_ios_new_rounded,
               size: iconSize,
-              color: isPrimaryAppBar
-                  ? Colors.white
-                  : Theme.of(context).colorScheme.onSurface,
+              color: leadingIconColor,
             ),
           ),
         ),
@@ -266,6 +271,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   Widget? _buildModalLeading(BuildContext context, bool isTablet) {
     final iconSize = isTablet ? 28.0 : 24.0;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: EdgeInsets.only(
@@ -294,7 +300,9 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
             child: Icon(
               Icons.close_rounded,
               size: iconSize,
-              color: Theme.of(context).colorScheme.onSurface,
+              color: isDark
+                  ? Theme.of(context).colorScheme.onSurface
+                  : const Color(0xFF0F172A),
             ),
           ),
         ),
@@ -325,7 +333,12 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
         widget is Padding && (widget.child is Chip);
   }
 
-  List<Widget>? _buildModalActions(BuildContext context, bool isTablet) {
+  List<Widget>? _buildModalActions(
+      BuildContext context, bool isTablet, bool hasLeading) {
+    if (hasLeading) {
+      return actions;
+    }
+
     return [
       Padding(
         padding: EdgeInsets.only(

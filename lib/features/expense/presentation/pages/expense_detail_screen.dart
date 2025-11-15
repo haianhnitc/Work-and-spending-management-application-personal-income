@@ -18,12 +18,25 @@ class ExpenseDetailScreen extends StatelessWidget {
     final ExpenseController controller = Get.find<ExpenseController>();
     final TaskController taskController = Get.find<TaskController>();
     final isTablet = MediaQuery.of(context).size.width > 600;
+    final appBarBg = Theme.of(context).primaryColor;
+    final appBarIconColor =
+        appBarBg.computeLuminance() > 0.5 ? Colors.black87 : Colors.white;
 
     return Scaffold(
       appBar: AppBar(
+        leading: Builder(builder: (context) {
+          return IconButton(
+            icon:
+                Icon(Icons.arrow_back_ios_new_rounded, color: appBarIconColor),
+            onPressed: () => Navigator.of(context).pop(),
+          );
+        }),
         title: Text('Chi tiết chi tiêu',
-            style: Theme.of(context).appBarTheme.titleTextStyle),
-        backgroundColor: Theme.of(context).primaryColor,
+            style: Theme.of(context)
+                .appBarTheme
+                .titleTextStyle
+                ?.copyWith(color: appBarIconColor)),
+        backgroundColor: appBarBg,
         actions: [
           Obx(() {
             final expense =
@@ -35,11 +48,11 @@ class ExpenseDetailScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: Icon(Icons.share, color: Colors.white),
+                  icon: Icon(Icons.share, color: appBarIconColor),
                   onPressed: () => _shareExpense(context, expense),
                 ).animate().scale(duration: 200.ms),
                 IconButton(
-                  icon: Icon(Icons.edit, color: Colors.white),
+                  icon: Icon(Icons.edit, color: appBarIconColor),
                   onPressed: () => Get.toNamed('/expense-create',
                       arguments: {'expense': expense}),
                 ).animate().scale(duration: 200.ms),

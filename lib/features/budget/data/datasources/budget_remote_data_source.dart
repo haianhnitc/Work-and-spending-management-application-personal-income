@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:injectable/injectable.dart';
-import 'package:task_expense_manager/core/constants/firebase_config.dart';
 import '../models/budget_model.dart';
 
 class _CategorySpendingData {
@@ -18,9 +17,6 @@ abstract class BudgetRemoteDataSource {
   Future<void> deleteBudget(String userId, String budgetId);
   Future<void> updateSpentAmount(String userId, String budgetId, double amount);
   Future<BudgetReportModel> getBudgetReport(String userId, String budgetId);
-  Future<BudgetModel> createSmartBudget(
-      String userId, String category, DateTime startDate, DateTime endDate);
-  Future<BudgetModel> autoAdjustBudget(String userId, String budgetId);
   Future<List<BudgetAlertModel>> checkBudgetAlerts(
       String userId, String budgetId);
   Stream<List<BudgetModel>> getBudgetsByCategory(
@@ -31,7 +27,6 @@ abstract class BudgetRemoteDataSource {
       String userId, String templateName);
   Future<BudgetModel> duplicateBudget(
       String userId, String budgetId, DateTime newStartDate);
-  Future<void> syncBudgetWithExpenses(String userId, String budgetId);
   Future<List<String>> getBudgetSuggestions(String userId);
 }
 
@@ -44,7 +39,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     return _firestore
         .collection('users')
         .doc(userId)
-        .collection(FirebaseConfig.budgetsCollection)
+        .collection('budgets')
         .where('isActive', isEqualTo: true)
         .snapshots()
         .map((snapshot) => snapshot.docs
@@ -57,7 +52,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     final doc = await _firestore
         .collection('users')
         .doc(userId)
-        .collection(FirebaseConfig.budgetsCollection)
+        .collection('budgets')
         .doc(budgetId)
         .get();
 
@@ -72,7 +67,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     await _firestore
         .collection('users')
         .doc(userId)
-        .collection(FirebaseConfig.budgetsCollection)
+        .collection('budgets')
         .doc(budget.id)
         .set(budget.toFirestore());
   }
@@ -82,7 +77,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     await _firestore
         .collection('users')
         .doc(userId)
-        .collection(FirebaseConfig.budgetsCollection)
+        .collection('budgets')
         .doc(budget.id)
         .update(budget.toFirestore());
   }
@@ -92,7 +87,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     await _firestore
         .collection('users')
         .doc(userId)
-        .collection(FirebaseConfig.budgetsCollection)
+        .collection('budgets')
         .doc(budgetId)
         .delete();
   }
@@ -103,7 +98,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     await _firestore
         .collection('users')
         .doc(userId)
-        .collection(FirebaseConfig.budgetsCollection)
+        .collection('budgets')
         .doc(budgetId)
         .update({
       'spentAmount': amount,
@@ -178,136 +173,6 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
   }
 
   @override
-  Future<BudgetModel> createSmartBudget(String userId, String category,
-      DateTime startDate, DateTime endDate) async {
-    final sixMonthsAgo = DateTime.now().subtract(Duration(days: 180));
-    final expensesSnapshot = await _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('expenses')
-        .where('category', isEqualTo: category)
-        .where('date', isGreaterThanOrEqualTo: sixMonthsAgo)
-        .get();
-
-    double totalHistorySpending = 0;
-    int monthsCount = 6;
-
-    for (final doc in expensesSnapshot.docs) {
-      final expense = doc.data();
-      totalHistorySpending += expense['amount']?.toDouble() ?? 0.0;
-    }
-
-    double avgMonthlySpending = totalHistorySpending / monthsCount;
-
-    if (avgMonthlySpending == 0) {
-      final categoryDefaults = {
-        'food': 3000000.0,
-        'transport': 2000000.0,
-        'entertainment': 1500000.0,
-        'utilities': 1000000.0,
-        'health': 2000000.0,
-        'shopping': 2500000.0,
-        'education': 1500000.0,
-        'other': 1000000.0,
-      };
-      avgMonthlySpending = categoryDefaults[category] ?? 2000000.0;
-    }
-
-    final durationInDays = endDate.difference(startDate).inDays;
-    final periodMultiplier = durationInDays / 30.0;
-
-    final smartBudgetAmount = (avgMonthlySpending * periodMultiplier * 1.1);
-
-    final budget = BudgetModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      userId: userId,
-      name: 'Smart Budget - ${category.toUpperCase()}',
-      category: category,
-      amount: smartBudgetAmount,
-      startDate: startDate,
-      endDate: endDate,
-      spentAmount: 0.0,
-      period: durationInDays <= 35
-          ? 'monthly'
-          : durationInDays <= 100
-              ? 'quarterly'
-              : 'yearly',
-      tags: ['smart', 'ai-generated'],
-      isActive: true,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      categoryLimits: {},
-      alerts: [],
-    );
-
-    await createBudget(userId, budget);
-    return budget;
-  }
-
-  @override
-  Future<BudgetModel> autoAdjustBudget(String userId, String budgetId) async {
-    final budget = await getBudgetById(userId, budgetId);
-    if (budget == null) {
-      throw Exception('Budget not found');
-    }
-
-    final currentUsage =
-        budget.amount > 0 ? budget.spentAmount / budget.amount : 0;
-
-    final historicalBudgets = await _firestore
-        .collection('users')
-        .doc(userId)
-        .collection(FirebaseConfig.budgetsCollection)
-        .where('category', isEqualTo: budget.category)
-        .where('isActive', isEqualTo: false)
-        .orderBy('createdAt', descending: true)
-        .limit(3)
-        .get();
-
-    double avgHistoricalUsage = 0;
-    int historyCount = 0;
-
-    for (final doc in historicalBudgets.docs) {
-      final historicalBudget = BudgetModel.fromFirestore(doc);
-      if (historicalBudget.amount > 0) {
-        avgHistoricalUsage +=
-            historicalBudget.spentAmount / historicalBudget.amount;
-        historyCount++;
-      }
-    }
-
-    if (historyCount > 0) {
-      avgHistoricalUsage /= historyCount;
-    } else {
-      avgHistoricalUsage = 0.8;
-    }
-
-    double adjustmentFactor = 1.0;
-
-    if (currentUsage > 0.9) {
-      adjustmentFactor = 1.2 + (currentUsage - 0.9) * 0.5;
-    } else if (currentUsage < 0.5 && avgHistoricalUsage < 0.6) {
-      adjustmentFactor = 0.85 + (currentUsage * 0.3);
-    } else if (avgHistoricalUsage > 0.8) {
-      adjustmentFactor = 1.15;
-    } else if (avgHistoricalUsage < 0.6) {
-      adjustmentFactor = 0.9;
-    }
-
-    final newAmount = budget.amount * adjustmentFactor;
-    final adjustedBudget = budget.copyWith(
-      amount: newAmount,
-      updatedAt: DateTime.now(),
-      tags: [...budget.tags, 'auto-adjusted'],
-    );
-
-    await updateBudget(userId, adjustedBudget);
-
-    print(
-        'Auto-adjusted budget ${budget.name}: ${budget.amount} -> $newAmount (factor: $adjustmentFactor)');
-    return adjustedBudget;
-  }
-
   @override
   Future<List<BudgetAlertModel>> checkBudgetAlerts(
       String userId, String budgetId) async {
@@ -347,7 +212,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     return _firestore
         .collection('users')
         .doc(userId)
-        .collection(FirebaseConfig.budgetsCollection)
+        .collection('budgets')
         .where('category', isEqualTo: category)
         .where('isActive', isEqualTo: true)
         .snapshots()
@@ -361,7 +226,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     return _firestore
         .collection('users')
         .doc(userId)
-        .collection(FirebaseConfig.budgetsCollection)
+        .collection('budgets')
         .where('period', isEqualTo: period)
         .where('isActive', isEqualTo: true)
         .snapshots()
@@ -375,7 +240,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     final budgets = await _firestore
         .collection('users')
         .doc(userId)
-        .collection(FirebaseConfig.budgetsCollection)
+        .collection('budgets')
         .where('isActive', isEqualTo: true)
         .get();
 
@@ -536,33 +401,6 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
   }
 
   @override
-  Future<void> syncBudgetWithExpenses(String userId, String budgetId) async {
-    final budget = await getBudgetById(userId, budgetId);
-    if (budget == null) {
-      throw Exception('Budget not found');
-    }
-
-    final expensesSnapshot = await _firestore
-        .collection('users')
-        .doc(userId)
-        .collection('expenses')
-        .where('category', isEqualTo: budget.category)
-        .where('date', isGreaterThanOrEqualTo: budget.startDate)
-        .where('date', isLessThanOrEqualTo: budget.endDate)
-        .get();
-
-    double totalSpent = 0;
-    for (final doc in expensesSnapshot.docs) {
-      final expense = doc.data();
-      totalSpent += expense['amount']?.toDouble() ?? 0.0;
-    }
-
-    await updateBudget(userId, budget.copyWith(spentAmount: totalSpent));
-
-    print('Synced budget ${budget.name}: spent amount updated to $totalSpent');
-  }
-
-  @override
   Future<List<String>> getBudgetSuggestions(String userId) async {
     final suggestions = <String>[];
 
@@ -577,7 +415,7 @@ class BudgetRemoteDataSourceImpl implements BudgetRemoteDataSource {
     final budgetsSnapshot = await _firestore
         .collection('users')
         .doc(userId)
-        .collection(FirebaseConfig.budgetsCollection)
+        .collection('budgets')
         .where('isActive', isEqualTo: true)
         .get();
 

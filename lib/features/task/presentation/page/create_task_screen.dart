@@ -41,11 +41,17 @@ class CreateTaskScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: Builder(builder: (context) {
+          final bg = Theme.of(context).primaryColor;
+          final iconColor =
+              bg.computeLuminance() > 0.5 ? Colors.black87 : Colors.white;
+          return IconButton(
+            icon: Icon(Icons.arrow_back_ios_new_rounded, color: iconColor),
+            onPressed: () => Navigator.of(context).pop(),
+          );
+        }),
         title: Text(task == null ? 'Tạo công việc mới' : 'Chỉnh sửa công việc',
-            style: Theme.of(context)
-                .appBarTheme
-                .titleTextStyle
-                ?.copyWith(color: Colors.white)),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Theme.of(context).primaryColor,
         elevation: 0,
       ),

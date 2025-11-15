@@ -20,24 +20,35 @@ class TaskDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final TaskController controller = Get.find<TaskController>();
     final isTablet = MediaQuery.of(context).size.width > 600;
+    final appBarBg = Theme.of(context).primaryColor;
+    final appBarIconColor =
+        appBarBg.computeLuminance() > 0.5 ? Colors.black87 : Colors.white;
 
     return Scaffold(
       appBar: AppBar(
+        leading: Builder(builder: (context) {
+          return IconButton(
+            icon:
+                Icon(Icons.arrow_back_ios_new_rounded, color: appBarIconColor),
+            onPressed: () => Navigator.of(context).pop(),
+          );
+        }),
         title: Text('Chi tiết công việc',
-            style: Theme.of(context).appBarTheme.titleTextStyle),
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+            style: Theme.of(context)
+                .appBarTheme
+                .titleTextStyle
+                ?.copyWith(color: appBarIconColor)),
+        backgroundColor: appBarBg,
         actions: [
           IconButton(
             icon: Icon(Icons.share_rounded,
-                color: Theme.of(context).appBarTheme.iconTheme?.color,
-                size: isTablet ? 30 : 26),
+                color: appBarIconColor, size: isTablet ? 30 : 26),
             onPressed: () => _shareTask(context, task),
             tooltip: 'Chia sẻ công việc',
           ).animate().scale(duration: 200.ms, delay: 100.ms),
           IconButton(
             icon: Icon(Icons.edit_rounded,
-                color: Theme.of(context).appBarTheme.iconTheme?.color,
-                size: isTablet ? 30 : 26),
+                color: appBarIconColor, size: isTablet ? 30 : 26),
             onPressed: () {
               Get.toNamed(AppRoutes.createTask, arguments: {'task': task});
             },
@@ -45,8 +56,7 @@ class TaskDetailScreen extends StatelessWidget {
           ).animate().scale(duration: 200.ms, delay: 200.ms),
           IconButton(
             icon: Icon(Icons.delete_rounded,
-                color: Theme.of(context).appBarTheme.iconTheme?.color,
-                size: isTablet ? 30 : 26),
+                color: Colors.red, size: isTablet ? 30 : 26),
             onPressed: () => _confirmDelete(context, controller, task),
             tooltip: 'Xóa công việc',
           ).animate().scale(duration: 200.ms, delay: 300.ms),

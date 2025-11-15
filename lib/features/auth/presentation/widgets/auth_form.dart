@@ -179,7 +179,7 @@ class _AuthFormState extends State<AuthForm> {
           if (widget.errorMessage != null && widget.errorMessage!.isNotEmpty)
             SizedBox(height: isTablet ? 24 : 20),
           SizedBox(
-            height: isTablet ? 56 : 48,
+            height: isTablet ? 60 : 52,
             child: ElevatedButton(
               onPressed: widget.isLoading ? null : _handleSubmit,
               style: ElevatedButton.styleFrom(
@@ -205,9 +205,12 @@ class _AuthFormState extends State<AuthForm> {
                     )
                   : Text(
                       widget.isLogin ? 'Đăng nhập' : 'Đăng ký',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                             fontSize: isTablet ? 18 : 16,
+                            height: 1.0,
                           ),
                     ),
             ),

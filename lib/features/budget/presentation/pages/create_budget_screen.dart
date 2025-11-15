@@ -67,6 +67,15 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: Builder(builder: (context) {
+          final bg = Theme.of(context).primaryColor;
+          final iconColor =
+              bg.computeLuminance() > 0.5 ? Colors.black87 : Colors.white;
+          return IconButton(
+            icon: Icon(Icons.arrow_back_ios_new_rounded, color: iconColor),
+            onPressed: () => Navigator.of(context).pop(),
+          );
+        }),
         title: Text(
           'Tạo Ngân Sách Mới',
           style: TextStyle(
@@ -114,8 +123,6 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
             _buildPeriodSection(context, isTablet),
             SizedBox(height: isTablet ? 24 : 16),
             _buildTagsSection(context, isTablet),
-            SizedBox(height: isTablet ? 24 : 16),
-            _buildSmartBudgetSection(context, isTablet),
             SizedBox(height: isTablet ? 24 : 16),
             _buildActionButtons(context, isTablet),
           ],
@@ -465,52 +472,6 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
     ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.3, end: 0);
   }
 
-  Widget _buildSmartBudgetSection(BuildContext context, bool isTablet) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: EdgeInsets.all(isTablet ? 20 : 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.psychology,
-                    size: 20, color: Theme.of(context).primaryColor),
-                SizedBox(width: 8),
-                Text(
-                  'Ngân Sách Thông Minh',
-                  style: TextStyle(
-                    fontSize: isTablet ? 18 : 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Tạo ngân sách thông minh dựa trên lịch sử chi tiêu của bạn',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-            ),
-            SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: _createSmartBudget,
-              icon: Icon(Icons.auto_awesome),
-              label: Text('Tạo Ngân Sách Thông Minh'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).primaryColor,
-                foregroundColor: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.3, end: 0);
-  }
-
   Widget _buildActionButtons(BuildContext context, bool isTablet) {
     return Row(
       children: [
@@ -593,15 +554,6 @@ class _CreateBudgetScreenState extends State<CreateBudgetScreen> {
     );
 
     await _budgetController.createBudget(budget);
-    Get.back();
-  }
-
-  void _createSmartBudget() async {
-    await _budgetController.createSmartBudget(
-      _selectedCategory,
-      _startDate,
-      _endDate,
-    );
     Get.back();
   }
 }
